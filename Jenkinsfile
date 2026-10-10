@@ -56,5 +56,41 @@ pipeline {
                 sh 'mvn deploy -DskipTests -DaltDeploymentRepository=nexus-snapshots::default::http://nexus:8081/repository/maven-snapshots/'
             }
         }
+
+                stage('BUILDING OUR IMAGE') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')]) {
+                    sh 'docker build -t $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER -t $DOCKERHUB_USER/gl5-g5-foyer:latest .'
+                }
+            }
+        }
+
+        stage('DEPLOY OUR IMAGE') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')]) {
+                    sh '''
+                        echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin
+                        docker push $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER
+                        docker push $DOCKERHUB_USER/gl5-g5-foyer:latest
+                        docker logout
+                    '''
+                }
+            }
+        }
+
+        stage('RUN CONTAINER') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')]) {
+                    sh '''
+                        docker rm -f foyer-app || true
+                        docker run -d --name foyer-app --network devops -p 8082:8082 \
+                          -e SPRING_DATASOURCE_URL="$SPRING_DATASOURCE_URL" \
+                          -e SPRING_DATASOURCE_USERNAME=root \
+                          -e SPRING_DATASOURCE_PASSWORD= \
+                          $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER
+                    '''
+                }
+            }
+        }
     }
 }
