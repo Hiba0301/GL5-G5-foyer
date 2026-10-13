@@ -3,9 +3,15 @@ def dockerImage
 pipeline {
     agent any
 
+    parameters {
+        booleanParam(name: 'RUN_TERRAFORM', defaultValue: false, description: 'Create the EKS cluster with Terraform')
+        booleanParam(name: 'DESTROY_INFRA', defaultValue: false, description: 'Destroy the EKS cluster')
+    }
+
     environment {
         registry = 'chaymasb/foyer-bloc'
         registryCredential = 'dockerhub'
+        AWS_DEFAULT_REGION = 'us-east-1'
     }
 
     stages {
@@ -72,6 +78,70 @@ pipeline {
                 script {
                     docker.withRegistry('', registryCredential) {
                         dockerImage.push()
+                    }
+                }
+            }
+        }
+
+        stage('Test AWS Credentials') {
+            steps {
+                withCredentials([file(credentialsId: 'aws-credentials', variable: 'AWS_CRED_FILE')]) {
+                    withEnv(['AWS_SHARED_CREDENTIALS_FILE=' + AWS_CRED_FILE]) {
+                        sh 'aws sts get-caller-identity'
+                    }
+                }
+            }
+        }
+
+        stage('SETUP TERRAFORM') {
+            when { expression { params.RUN_TERRAFORM } }
+            steps {
+                withCredentials([file(credentialsId: 'aws-credentials', variable: 'AWS_CRED_FILE')]) {
+                    withEnv(['AWS_SHARED_CREDENTIALS_FILE=' + AWS_CRED_FILE]) {
+                        dir('terraform') {
+                            sh 'terraform init'
+                            sh 'terraform validate'
+                            sh 'terraform apply -auto-approve'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('UPDATE KUBECONFIG') {
+            steps {
+                withCredentials([file(credentialsId: 'aws-credentials', variable: 'AWS_CRED_FILE')]) {
+                    withEnv(['AWS_SHARED_CREDENTIALS_FILE=' + AWS_CRED_FILE]) {
+                        sh 'aws eks update-kubeconfig --name mykubernetes --region us-east-1 --kubeconfig $WORKSPACE/kubeconfig'
+                    }
+                }
+            }
+        }
+
+        stage('DEPLOY TO AWS KUBERNETES') {
+            steps {
+                withCredentials([file(credentialsId: 'aws-credentials', variable: 'AWS_CRED_FILE')]) {
+                    withEnv(['AWS_SHARED_CREDENTIALS_FILE=' + AWS_CRED_FILE, 'KUBECONFIG=' + env.WORKSPACE + '/kubeconfig']) {
+                        sh "sed -i 's#IMAGE_PLACEHOLDER#${registry}:${BUILD_NUMBER}#' deployment.yaml"
+                        sh 'kubectl apply -f deployment.yaml'
+                        sh 'kubectl apply -f service.yaml'
+                        sh 'kubectl rollout status deployment/mysql --timeout=180s'
+                        sh 'kubectl rollout status deployment/foyer-bloc --timeout=300s'
+                        sh 'kubectl get pods -o wide'
+                        sh 'kubectl get nodes -o wide'
+                    }
+                }
+            }
+        }
+
+        stage('TEARDOWN TERRAFORM') {
+            when { expression { params.DESTROY_INFRA } }
+            steps {
+                withCredentials([file(credentialsId: 'aws-credentials', variable: 'AWS_CRED_FILE')]) {
+                    withEnv(['AWS_SHARED_CREDENTIALS_FILE=' + AWS_CRED_FILE]) {
+                        dir('terraform') {
+                            sh 'terraform destroy -auto-approve'
+                        }
                     }
                 }
             }
