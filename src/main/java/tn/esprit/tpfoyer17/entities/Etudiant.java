@@ -1,12 +1,9 @@
 package tn.esprit.tpfoyer17.entities;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
@@ -18,7 +15,7 @@ import java.util.Set;
 @Builder
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Etudiant implements Serializable {
+public class Etudiant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

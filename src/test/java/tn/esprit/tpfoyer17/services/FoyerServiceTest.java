@@ -8,24 +8,56 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tn.esprit.tpfoyer17.entities.Foyer;
+import tn.esprit.tpfoyer17.entities.Universite;
 import tn.esprit.tpfoyer17.repositories.FoyerRepository;
+import tn.esprit.tpfoyer17.repositories.UniversiteRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class FoyerServiceTest {
+class FoyerServiceTest {
 
 	@Mock
 	private FoyerRepository foyerRepository;
 
+	@Mock
+	private UniversiteRepository universiteRepository;
+
 	@InjectMocks
 	private FoyerService foyerService;
+
+	@Test
+	void testGetAllFoyersAvecMockito() {
+		List<Foyer> foyers = List.of(creerFoyer("F1", 100), creerFoyer("F2", 200));
+		when(foyerRepository.findAll()).thenReturn(foyers);
+
+		List<Foyer> resultat = foyerService.getAllFoyers();
+
+		assertEquals(2, resultat.size());
+		verify(foyerRepository).findAll();
+	}
+
+	@Test
+	void testAjouterFoyerEtAffecterAUniversiteAvecMockito() {
+		Foyer foyer = creerFoyer("Foyer affecte", 250);
+		Universite universite = Universite.builder().nomUniversite("ESPRIT").build();
+		when(foyerRepository.save(foyer)).thenReturn(foyer);
+		when(universiteRepository.findById(1L)).thenReturn(Optional.of(universite));
+
+		Foyer resultat = foyerService.ajouterFoyerEtAffecterAUniversite(foyer, 1L);
+
+		assertEquals(foyer, resultat);
+		assertEquals(foyer, universite.getFoyer());
+		verify(universiteRepository).save(universite);
+	}
 
 	@Test
 	void testAddFoyerAvecMockito() {
@@ -92,7 +124,7 @@ class FoyerServiceIntegrationTest {
 
 		Foyer resultat = foyerService.addFoyer(foyer);
 
-		assertNotNull(resultat.getIdFoyer());
+		assertTrue(resultat.getIdFoyer() > 0);
 		foyerService.deleteFoyer(resultat.getIdFoyer());
 	}
 
@@ -121,11 +153,12 @@ class FoyerServiceIntegrationTest {
 	void testDeleteFoyerSansMockito() {
 		Foyer foyer = foyerService.addFoyer(creerFoyer("Foyer Integration Delete", 400));
 
-		foyerService.deleteFoyer(foyer.getIdFoyer());
+		long id = foyer.getIdFoyer();
+		foyerService.deleteFoyer(id);
 
 		org.junit.jupiter.api.Assertions.assertThrows(
 				java.util.NoSuchElementException.class,
-				() -> foyerService.getFoyerById(foyer.getIdFoyer())
+				() -> foyerService.getFoyerById(id)
 		);
 	}
 
