@@ -36,3 +36,5 @@ build/
 .vscode/
 terraform/.terraform/
 terraform/*.tfstate*
+
+.env
