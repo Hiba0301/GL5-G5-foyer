@@ -5,10 +5,18 @@ pipeline {
         maven 'maven3'
     }
 
+    parameters {
+        choice(name: 'AWS_ACTION', choices: ['none', 'deploy', 'destroy'],
+               description: 'none = CI seule, deploy = EKS + déploiement, destroy = tout supprimer')
+    }
+
     environment {
         SPRING_DATASOURCE_URL = 'jdbc:mysql://mysql:3306/tpFoyer17?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC'
         SPRING_DATASOURCE_USERNAME = 'root'
         SPRING_DATASOURCE_PASSWORD = ''
+        AWS_REGION   = 'us-east-1'
+        CLUSTER_NAME = 'mykubernetes'
+        TF_STATE     = '/var/jenkins_home/tfstate/foyer.tfstate'
     }
 
     stages {
@@ -57,10 +65,11 @@ pipeline {
             }
         }
 
-                stage('BUILDING OUR IMAGE') {
+        stage('BUILDING OUR IMAGE') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')]) {
-                    sh 'docker build -t $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER -t $DOCKERHUB_USER/gl5-g5-foyer:latest .'
+                    // amd64 : les serveurs AWS (t3.medium) ne sont pas en ARM comme le Mac
+                    sh 'docker build --platform linux/amd64 -t $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER -t $DOCKERHUB_USER/gl5-g5-foyer:latest .'
                 }
             }
         }
@@ -89,6 +98,67 @@ pipeline {
                           -e SPRING_DATASOURCE_PASSWORD= \
                           $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER
                     '''
+                }
+            }
+        }
+
+        stage('TEST AWS CREDENTIALS') {
+            when { expression { params.AWS_ACTION != 'none' } }
+            steps {
+                withCredentials([file(credentialsId: 'aws-credentials', variable: 'AWS_SHARED_CREDENTIALS_FILE')]) {
+                    sh 'aws sts get-caller-identity'
+                }
+            }
+        }
+
+        stage('SETUP TERRAFORM') {
+            when { expression { params.AWS_ACTION == 'deploy' } }
+            steps {
+                withCredentials([file(credentialsId: 'aws-credentials', variable: 'AWS_SHARED_CREDENTIALS_FILE')]) {
+                    dir('terraform') {
+                        sh 'mkdir -p $(dirname $TF_STATE)'
+                        sh 'terraform init -input=false -backend-config=path=$TF_STATE'
+                        sh 'terraform validate'
+                        sh 'terraform apply -auto-approve -input=false'
+                    }
+                }
+            }
+        }
+
+        stage('UPDATE KUBECONFIG') {
+            when { expression { params.AWS_ACTION == 'deploy' } }
+            steps {
+                withCredentials([file(credentialsId: 'aws-credentials', variable: 'AWS_SHARED_CREDENTIALS_FILE')]) {
+                    sh 'aws eks update-kubeconfig --name $CLUSTER_NAME --region $AWS_REGION --kubeconfig $WORKSPACE/kubeconfig'
+                }
+            }
+        }
+
+        stage('DEPLOY TO AWS KUBERNETES') {
+            when { expression { params.AWS_ACTION == 'deploy' } }
+            steps {
+                withCredentials([file(credentialsId: 'aws-credentials', variable: 'AWS_SHARED_CREDENTIALS_FILE')]) {
+                    sh '''
+                        export KUBECONFIG=$WORKSPACE/kubeconfig
+                        kubectl get nodes -o wide
+                        kubectl apply -f deployment.yaml
+                        kubectl apply -f service.yaml
+                        kubectl rollout restart deployment/foyer-app
+                        kubectl rollout status deployment/foyer-app --timeout=300s
+                        kubectl get pods,svc -o wide
+                    '''
+                }
+            }
+        }
+
+        stage('TEARDOWN TERRAFORM') {
+            when { expression { params.AWS_ACTION == 'destroy' } }
+            steps {
+                withCredentials([file(credentialsId: 'aws-credentials', variable: 'AWS_SHARED_CREDENTIALS_FILE')]) {
+                    dir('terraform') {
+                        sh 'terraform init -input=false -backend-config=path=$TF_STATE'
+                        sh 'terraform destroy -auto-approve -input=false'
+                    }
                 }
             }
         }
