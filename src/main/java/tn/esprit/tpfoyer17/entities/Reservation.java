@@ -19,7 +19,7 @@ import java.util.Set;
 public class Reservation implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  //  @GeneratedValue(strategy = GenerationType.SEQUENCE)
     String idReservation;
 
     Date anneeUniversitaire;
