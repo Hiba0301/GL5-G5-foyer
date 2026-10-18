@@ -11,6 +11,7 @@ import tn.esprit.tpfoyer17.entities.enumerations.TypeChambre;
 import tn.esprit.tpfoyer17.repositories.ChambreRepository;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @AllArgsConstructor
@@ -31,7 +32,11 @@ public class ChambreService implements IChambreService{
     }
     @Override
     public Chambre getChambreById(long idChambre) {
-        return chambreRepository.findById(idChambre).get();
+        return chambreRepository.findById(idChambre)
+                .orElseThrow(() -> {
+                    log.warn("Chambre introuvable id={}", idChambre);
+                    return new NoSuchElementException("Chambre introuvable avec l'id " + idChambre);
+                });
     }
     @Override
     public void deleteChambre(long idChambre) {
