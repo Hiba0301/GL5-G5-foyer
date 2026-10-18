@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import tn.esprit.tpfoyer17.dto.ChambreDTO;
 import tn.esprit.tpfoyer17.entities.Chambre;
 import tn.esprit.tpfoyer17.entities.enumerations.TypeChambre;
 import tn.esprit.tpfoyer17.services.IChambreService;
@@ -18,10 +19,12 @@ import java.util.List;
 @RequestMapping("api/chambres")
 public class ChambreController {
     IChambreService chambreService;
+
     @PostMapping("add")
-    public Chambre addingChambre(@RequestBody Chambre chambre){
-        return chambreService.addChambre(chambre);
+    public Chambre addingChambre(@RequestBody ChambreDTO chambreDTO){
+        return chambreService.addChambre(toEntity(chambreDTO, false));
     }
+
     @GetMapping("getAll")
     public List<Chambre> gettingAllChambre(){
         return chambreService.getAllChambres();
@@ -38,12 +41,13 @@ public class ChambreController {
     }
 
     @PutMapping("update")
-    public Chambre updatingChambre(@RequestBody Chambre chambre){
-        return chambreService.updateChambre(chambre);
+    public Chambre updatingChambre(@RequestBody ChambreDTO chambreDTO){
+        return chambreService.updateChambre(toEntity(chambreDTO, true));
     }
 
     @GetMapping("get-par-nom-universite")
-    public List<Chambre>  getChambresParNomUniversite( String nomUniversite) {
+    public List<Chambre> getChambresParNomUniversite(
+            @RequestParam("nomUniversite") String nomUniversite) {
         return chambreService.getChambresParNomUniversite(nomUniversite);
 
     }
@@ -58,5 +62,17 @@ public class ChambreController {
     @GetMapping("get-non-reserve-par-nom-universite-typechambre")
     public List<Chambre>  getChambresNonReserveParNomUniversiteEtTypeChambre( @RequestParam("nomUniversite") String nomUniversite,@RequestParam("type") TypeChambre type) {
         return chambreService.getChambresNonReserveParNomUniversiteEtTypeChambre(nomUniversite,type);
+    }
+
+    private Chambre toEntity(ChambreDTO chambreDTO, boolean withId) {
+        Chambre.ChambreBuilder builder = Chambre.builder()
+                .numeroChambre(chambreDTO.getNumeroChambre())
+                .typeChambre(chambreDTO.getTypeChambre());
+
+        if (withId) {
+            builder.idChambre(chambreDTO.getIdChambre());
+        }
+
+        return builder.build();
     }
 }
