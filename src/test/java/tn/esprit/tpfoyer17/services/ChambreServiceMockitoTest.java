@@ -80,6 +80,59 @@ class ChambreServiceMockitoTest {
     }
 
     @Test
+    void testGetChambresParNomUniversite() {
+        Chambre chambre = createChambre(101L, TypeChambre.SIMPLE);
+        List<Chambre> expected = List.of(chambre);
+        when(chambreRepository.findByBlocFoyerUniversiteNomUniversite("Esprit"))
+                .thenReturn(expected);
+
+        List<Chambre> result = chambreService.getChambresParNomUniversite("Esprit");
+
+        assertEquals(expected, result);
+        verify(chambreRepository).findByBlocFoyerUniversiteNomUniversite("Esprit");
+    }
+
+    @Test
+    void testGetChambresParBlocEtTypeJpql() {
+        Chambre chambre = createChambre(101L, TypeChambre.SIMPLE);
+        List<Chambre> expected = List.of(chambre);
+        when(chambreRepository.findByBlocIdBlocAndTypeChambreJPQL(1L, TypeChambre.SIMPLE))
+                .thenReturn(expected);
+
+        List<Chambre> result = chambreService.getChambresParBlocEtTypeJPQL(1L, TypeChambre.SIMPLE);
+
+        assertEquals(expected, result);
+        verify(chambreRepository).findByBlocIdBlocAndTypeChambreJPQL(1L, TypeChambre.SIMPLE);
+    }
+
+    @Test
+    void testGetChambresNonReserveParNomUniversiteEtTypeChambre() {
+        Chambre chambre = createChambre(101L, TypeChambre.SIMPLE);
+        List<Chambre> expected = List.of(chambre);
+        when(chambreRepository.getChambresNonReserveParNomUniversiteEtTypeChambre(
+                "Esprit", TypeChambre.SIMPLE))
+                .thenReturn(expected);
+
+        List<Chambre> result = chambreService
+                .getChambresNonReserveParNomUniversiteEtTypeChambre("Esprit", TypeChambre.SIMPLE);
+
+        assertEquals(expected, result);
+        verify(chambreRepository).getChambresNonReserveParNomUniversiteEtTypeChambre(
+                "Esprit", TypeChambre.SIMPLE);
+    }
+
+    @Test
+    void testGetChambreNonReserver() {
+        Chambre chambre = createChambre(101L, TypeChambre.SIMPLE);
+        List<Chambre> expected = List.of(chambre);
+        when(chambreRepository.getChambresNonReserve()).thenReturn(expected);
+
+        assertDoesNotThrow(() -> chambreService.getChambreNonReserver());
+
+        verify(chambreRepository).getChambresNonReserve();
+    }
+
+    @Test
     void testUpdateChambre() {
         Chambre chambre = createChambre(303L, TypeChambre.TRIPLE);
         when(chambreRepository.save(chambre)).thenReturn(chambre);
