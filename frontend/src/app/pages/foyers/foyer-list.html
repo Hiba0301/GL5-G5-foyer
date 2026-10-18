@@ -12,7 +12,7 @@
 
 @if (chargement()) {
   <p class="muted">Chargement…</p>
-} @else if (foyers().length === 0) {
+} @else if (foyers().length === 0 && !erreur()) {
   <p class="muted">Aucun foyer pour le moment.</p>
 } @else {
   <table class="table">

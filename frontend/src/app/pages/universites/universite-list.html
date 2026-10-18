@@ -12,7 +12,7 @@
 
 @if (chargement()) {
   <p class="muted">Chargement…</p>
-} @else if (universites().length === 0) {
+} @else if (universites().length === 0 && !erreur()) {
   <p class="muted">Aucune université pour le moment.</p>
 } @else {
   <table class="table">
