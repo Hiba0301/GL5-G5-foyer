@@ -2,3 +2,4 @@ terraform/
 .git/
 *.md
 kubeconfig
+frontend/
