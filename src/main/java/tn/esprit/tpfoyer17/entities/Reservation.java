@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.Set;
 
@@ -16,10 +15,10 @@ import java.util.Set;
 @Builder
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Reservation implements Serializable {
+public class Reservation {
 
+    // Id métier (ex : "3-2026") : assigné par le service, donc pas de @GeneratedValue
     @Id
-  //  @GeneratedValue(strategy = GenerationType.SEQUENCE)
     String idReservation;
 
     Date anneeUniversitaire;

@@ -17,12 +17,14 @@ import tn.esprit.tpfoyer17.repositories.ReservationRepository;
 
 import java.time.Year;
 import java.util.*;
+import java.time.ZoneId;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class ReservationService implements IReservationService{
+    private static final ZoneId ZONE = ZoneId.of("Africa/Tunis");
     ReservationRepository reservationRepository;
     EtudiantRepository etudiantRepository;
     ChambreRepository chambreRepository;
@@ -93,7 +95,7 @@ public class ReservationService implements IReservationService{
 
     @Override
     public Reservation annulerReservation(long cinEtudiant) {
-        Reservation reservation = reservationRepository.findByEtudiantsCinEtudiantAndAnneeUniversitaire(cinEtudiant, Year.now().getValue());
+        Reservation reservation = reservationRepository.findByEtudiantsCinEtudiantAndAnneeUniversitaire(cinEtudiant, Year.now(ZONE).getValue());
         Etudiant etudiant = etudiantRepository.findByCinEtudiant(cinEtudiant);
         reservation.getEtudiants().remove(etudiant);
         reservation.setEstValide(true);
