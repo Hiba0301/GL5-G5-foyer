@@ -5,4 +5,4 @@ scrape_configs:
   - job_name: 'tpfoyer'
     metrics_path: '/tpFoyer17/actuator/prometheus'
     static_configs:
-      - targets: ['<app>:8082']
+      - targets: [ 'foyer-app:8082' ]
