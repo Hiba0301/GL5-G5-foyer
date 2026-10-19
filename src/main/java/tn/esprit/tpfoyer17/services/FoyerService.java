@@ -11,6 +11,7 @@ import tn.esprit.tpfoyer17.repositories.FoyerRepository;
 import tn.esprit.tpfoyer17.repositories.UniversiteRepository;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @AllArgsConstructor
@@ -22,35 +23,55 @@ public class FoyerService implements IFoyerService{
 
     @Override
     public Foyer addFoyer(Foyer foyer) {
-        return foyerRepository.save(foyer);
-
-
+        log.info("Ajout d'un nouveau foyer : {}", foyer.getNomFoyer());
+        Foyer saved = foyerRepository.save(foyer);
+        log.debug("Foyer ajouté avec l'id {}", saved.getIdFoyer());
+        return saved;
     }
+
     @Override
     public List<Foyer> getAllFoyers() {
-        return (List<Foyer>) foyerRepository.findAll();
+        log.info("Récupération de tous les foyers");
+        List<Foyer> foyers = (List<Foyer>) foyerRepository.findAll();
+        log.debug("Nombre de foyers récupérés : {}", foyers.size());
+        return foyers;
     }
+
     @Override
     public Foyer getFoyerById(long idFoyer) {
-        return foyerRepository.findById(idFoyer).orElseThrow();
+        log.debug("Recherche du foyer avec l'id {}", idFoyer);
+        return foyerRepository.findById(idFoyer).orElseThrow(() -> {
+            log.error("Foyer introuvable avec l'id {}", idFoyer);
+            return new NoSuchElementException("Foyer introuvable avec l'id " + idFoyer);
+        });
     }
+
     @Override
     public void deleteFoyer(long idFoyer) {
+        if (!foyerRepository.existsById(idFoyer)) {
+            log.warn("Suppression demandée pour un foyer inexistant, id {}", idFoyer);
+        }
         foyerRepository.deleteById(idFoyer);
+        log.info("Suppression du foyer avec l'id {}", idFoyer);
     }
+
     @Override
     public Foyer updateFoyer(Foyer foyer) {
+        log.info("Mise à jour du foyer avec l'id {}", foyer.getIdFoyer());
         return foyerRepository.save(foyer);
     }
 
     @Override
     public Foyer ajouterFoyerEtAffecterAUniversite(Foyer foyer, long idUniversite) {
+        log.info("Ajout du foyer {} et affectation à l'université {}", foyer.getNomFoyer(), idUniversite);
         Foyer foyer1 = foyerRepository.save(foyer);
-        Universite universite = universiteRepository.findById(idUniversite).orElseThrow();
+        Universite universite = universiteRepository.findById(idUniversite).orElseThrow(() -> {
+            log.error("Université introuvable avec l'id {}", idUniversite);
+            return new NoSuchElementException("Université introuvable avec l'id " + idUniversite);
+        });
         universite.setFoyer(foyer1);
         universiteRepository.save(universite);
-        return foyer1 ;
+        log.debug("Foyer {} affecté à l'université {}", foyer1.getIdFoyer(), universite.getNomUniversite());
+        return foyer1;
     }
-
-
 }
