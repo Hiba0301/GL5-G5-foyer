@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import tn.esprit.tpfoyer17.entities.Chambre;
 import tn.esprit.tpfoyer17.entities.enumerations.TypeChambre;
-import tn.esprit.tpfoyer17.services.ChambreService;
 import tn.esprit.tpfoyer17.services.IChambreService;
 
 import java.util.List;
@@ -50,7 +49,7 @@ public class ChambreController {
     }
     @GetMapping("get-par-bloc-type-keyword")
     public List<Chambre> getChambresParBlocEtTypeKeyWord(@RequestParam("idBloc") long idBloc,@RequestParam("typeC") TypeChambre typeC) {
-        return getChambresParBlocEtTypeKeyWord(idBloc,typeC);
+        return chambreService.getChambresParBlocEtTypeKeyWord(idBloc,typeC);
     }
     @GetMapping("get-par-bloc-type-jpql")
     public List<Chambre> getChambresParBlocEtTypeJPQL(@RequestParam("idBloc") long idBloc,@RequestParam("typeC") TypeChambre typeC) {

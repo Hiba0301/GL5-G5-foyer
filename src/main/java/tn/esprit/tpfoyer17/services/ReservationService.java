@@ -16,7 +16,11 @@ import tn.esprit.tpfoyer17.repositories.EtudiantRepository;
 import tn.esprit.tpfoyer17.repositories.ReservationRepository;
 
 import java.time.Year;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @AllArgsConstructor
@@ -37,7 +41,7 @@ public class ReservationService implements IReservationService{
 
     @Override
     public Reservation getReservationById(String idReservation) {
-        return reservationRepository.findById(idReservation).get();
+        return reservationRepository.findById(idReservation).orElseThrow();
     }
 
     @Override
@@ -53,42 +57,33 @@ public class ReservationService implements IReservationService{
 
     @Override
     public Reservation ajouterReservation(long idBloc, long cinEtudiant) {
+        Etudiant etudiant = etudiantRepository.findByCinEtudiant(cinEtudiant);
+        Reservation reservation = reservationRepository.findForReservation(idBloc);
 
-        if (reservationRepository.findForReservation(idBloc) != null) {
-            Reservation reservation = reservationRepository.findForReservation(idBloc);
-            reservation.getEtudiants().add(etudiantRepository.findByCinEtudiant(cinEtudiant));
+        if (reservation != null) {
+            reservation.getEtudiants().add(etudiant);
             Chambre chambre = chambreRepository.findByReservationsIdReservation(reservation.getIdReservation());
-            switch (chambre.getTypeChambre()) {
-                case TRIPLE:
-                    if (reservation.getEtudiants().size() == 3){
-                        reservation.setEstValide(false);
-                    }
-                    break;
-                case DOUBLE:
-                    reservation.setEstValide(false);
-                    break;
+            TypeChambre type = chambre.getTypeChambre();
+            if (type == TypeChambre.DOUBLE
+                    || (type == TypeChambre.TRIPLE && reservation.getEtudiants().size() == 3)) {
+                reservation.setEstValide(false);
             }
             return reservationRepository.save(reservation);
-        } else {
-            List<Etudiant> etudiants = new ArrayList<Etudiant>();
-            etudiants.add(etudiantRepository.findByCinEtudiant(cinEtudiant));
-            Reservation reservation = Reservation.builder().anneeUniversitaire(new Date()).etudiants((Set<Etudiant>) etudiants).build();
-            Chambre chambre = chambreRepository.getForReservation(idBloc);
-            Bloc bloc =blocRepository.findById(idBloc).get();
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(new Date());
-            String idReservation = chambre.getIdChambre()+bloc.getNomBloc()+calendar.get(Calendar.YEAR);
-            reservation.setIdReservation(idReservation);
-            if (chambre.getTypeChambre().equals(TypeChambre.SIMPLE)){
-                reservation.setEstValide(false);
-            }else {
-                reservation.setEstValide(true);
-            }
-
-        return reservationRepository.save(reservation);
         }
 
-
+        Set<Etudiant> etudiants = new HashSet<>();
+        etudiants.add(etudiant);
+        Chambre chambre = chambreRepository.getForReservation(idBloc);
+        Bloc bloc = blocRepository.findById(idBloc).orElseThrow();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date());
+        Reservation nouvelle = Reservation.builder()
+                .idReservation(chambre.getIdChambre() + bloc.getNomBloc() + calendar.get(Calendar.YEAR))
+                .anneeUniversitaire(new Date())
+                .etudiants(etudiants)
+                .estValide(chambre.getTypeChambre() != TypeChambre.SIMPLE)
+                .build();
+        return reservationRepository.save(nouvelle);
     }
 
     @Override
@@ -104,7 +99,7 @@ public class ReservationService implements IReservationService{
     public List<Reservation> getReservationParAnneeUniversitaireEtNomUniversite(Date anneeUniversite, String nomUniversite) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(anneeUniversite);
-        return reservationRepository.findByAnneeUniversitaire_YearAndNomUnuiversite(calendar.get(Calendar.YEAR), nomUniversite);
+        return reservationRepository.findByAnneeUniversitaireYearAndNomUniversite(calendar.get(Calendar.YEAR), nomUniversite);
 
     }
 }

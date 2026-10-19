@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.io.Serializable;
 
 @Entity
 @Getter
@@ -14,7 +13,7 @@ import java.io.Serializable;
 @Builder
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Universite implements Serializable {
+public class Universite {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

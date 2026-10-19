@@ -12,17 +12,19 @@ import tn.esprit.tpfoyer17.entities.Universite;
 import tn.esprit.tpfoyer17.repositories.FoyerRepository;
 import tn.esprit.tpfoyer17.repositories.UniversiteRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class UniversiteServiceTest {
+class UniversiteServiceTest {
 
 	@Mock
 	private UniversiteRepository universiteRepository;
@@ -43,6 +45,16 @@ public class UniversiteServiceTest {
 		assertNotNull(resultat);
 		assertEquals("ESPRIT", resultat.getNomUniversite());
 		verify(universiteRepository).save(universite);
+	}
+
+	@Test
+	void testGetAllUniversitesAvecMockito() {
+		when(universiteRepository.findAll()).thenReturn(List.of(creerUniversite("ESPRIT", "Ariana")));
+
+		List<Universite> resultat = universiteService.getAllUniversites();
+
+		assertEquals(1, resultat.size());
+		verify(universiteRepository).findAll();
 	}
 
 	@Test
@@ -133,7 +145,7 @@ class UniversiteServiceIntegrationTest {
 
 		Universite resultat = universiteService.addUniversite(universite);
 
-		assertNotNull(resultat.getIdUniversite());
+		assertTrue(resultat.getIdUniversite() > 0);
 		universiteService.deleteUniversite(resultat.getIdUniversite());
 	}
 
@@ -165,11 +177,12 @@ class UniversiteServiceIntegrationTest {
 		Universite universite = universiteService.addUniversite(
 				creerUniversite("ESPRIT Integration Delete", "Ariana"));
 
-		universiteService.deleteUniversite(universite.getIdUniversite());
+		long id = universite.getIdUniversite();
+		universiteService.deleteUniversite(id);
 
 		org.junit.jupiter.api.Assertions.assertThrows(
 				java.util.NoSuchElementException.class,
-				() -> universiteService.getUniversiteById(universite.getIdUniversite())
+				() -> universiteService.getUniversiteById(id)
 		);
 	}
 
