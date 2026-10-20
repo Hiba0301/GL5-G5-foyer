@@ -22,10 +22,6 @@ public class EtudiantController {
 
     EtudiantRepository etudiantRepository;
 
-    /*@PostMapping("add")
-    public Etudiant addEtudiant(@Valid @RequestBody Etudiant etudiant){
-        return etudiantRepository.save(etudiant);
-    }*/
     @PostMapping("add")
     public Etudiant addEtudiant(@Valid @RequestBody Etudiant etudiant){
         return etudiantService.addEtudiant(etudiant);

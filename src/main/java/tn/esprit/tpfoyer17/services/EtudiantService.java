@@ -18,31 +18,6 @@ import java.util.NoSuchElementException;
 public class EtudiantService implements IEtudiantService{
     EtudiantRepository etudiantRepository;
 
-    /* @Override
-    public Etudiant addEtudiant(Etudiant etudiant) {
-        return etudiantRepository.save(etudiant);
-
-
-    }
-    @Override
-    public List<Etudiant> getAllEtudiants() {
-        return (List<Etudiant>) etudiantRepository.findAll();
-    }
-    @Override
-    public Etudiant getEtudiantById(long idEtudiant) {
-        return etudiantRepository.findById(idEtudiant).get();
-    }
-    @Override
-    public void deleteEtudiant(long idEtudiant) {
-        etudiantRepository.deleteById(idEtudiant);
-    }
-    @Override
-    public Etudiant updateEtudiant(Etudiant etudiant) {
-        return etudiantRepository.save(etudiant);
-    }
-   
-    */
-
     @Override
     public Etudiant addEtudiant(Etudiant etudiant) {
         log.info("Ajout d'un nouvel étudiant");
