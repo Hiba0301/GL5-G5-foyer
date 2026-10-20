@@ -21,6 +21,7 @@ target/
 
 .DS_Store
 *.log
+logs/
 
 ### NetBeans ###
 /nbproject/private/
