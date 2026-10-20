@@ -144,15 +144,29 @@ class ChambreServiceMockitoTest {
 
     @Test
     void testUpdateChambre() {
-        Chambre chambre = createChambre(303L, TypeChambre.TRIPLE);
-        when(chambreRepository.save(chambre)).thenReturn(chambre);
+        Chambre existingChambre = createChambre(1L, 303L, TypeChambre.SIMPLE);
+        Chambre chambre = createChambre(1L, 304L, TypeChambre.TRIPLE);
+        when(chambreRepository.findById(1L)).thenReturn(Optional.of(existingChambre));
+        when(chambreRepository.save(existingChambre)).thenReturn(existingChambre);
 
         Chambre result = chambreService.updateChambre(chambre);
 
         assertNotNull(result);
-        assertEquals(303L, result.getNumeroChambre());
+        assertEquals(304L, result.getNumeroChambre());
         assertEquals(TypeChambre.TRIPLE, result.getTypeChambre());
-        verify(chambreRepository).save(chambre);
+        verify(chambreRepository).findById(1L);
+        verify(chambreRepository).save(existingChambre);
+    }
+
+    @Test
+    void testUpdateChambreWithMissingIdDoesNotSave() {
+        Chambre chambre = createChambre(999L, 303L, TypeChambre.TRIPLE);
+        when(chambreRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () -> chambreService.updateChambre(chambre));
+
+        verify(chambreRepository).findById(999L);
+        verify(chambreRepository, never()).save(any());
     }
 
     @Test
@@ -169,6 +183,14 @@ class ChambreServiceMockitoTest {
         assertThrows(NoSuchElementException.class, () -> chambreService.getChambreById(99L));
 
         verify(chambreRepository).findById(99L);
+    }
+
+    private Chambre createChambre(long id, long numero, TypeChambre type) {
+        return Chambre.builder()
+                .idChambre(id)
+                .numeroChambre(numero)
+                .typeChambre(type)
+                .build();
     }
 
     private Chambre createChambre(long numero, TypeChambre type) {

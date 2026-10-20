@@ -4,6 +4,8 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tn.esprit.tpfoyer17.dto.ChambreDTO;
 import tn.esprit.tpfoyer17.entities.Chambre;
@@ -11,6 +13,7 @@ import tn.esprit.tpfoyer17.entities.enumerations.TypeChambre;
 import tn.esprit.tpfoyer17.services.IChambreService;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @AllArgsConstructor
@@ -48,6 +51,12 @@ public class ChambreController {
     public Chambre updatingChambre(@RequestBody ChambreDTO chambreDTO){
         log.info("Updating chambre id={}", chambreDTO.getIdChambre());
         return chambreService.updateChambre(toEntity(chambreDTO, true));
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<String> handleChambreNotFound(NoSuchElementException exception) {
+        log.warn("{}", exception.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
     }
 
     @GetMapping("get-par-nom-universite")

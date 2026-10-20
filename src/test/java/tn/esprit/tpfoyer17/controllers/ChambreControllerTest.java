@@ -14,6 +14,7 @@ import tn.esprit.tpfoyer17.entities.enumerations.TypeChambre;
 import tn.esprit.tpfoyer17.services.IChambreService;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ChambreController.class)
@@ -118,6 +120,19 @@ class ChambreControllerTest {
                 .andExpect(jsonPath("$.reservations").doesNotExist());
 
         verify(chambreService).getChambreById(1L);
+    }
+
+    @Test
+    void testGettingMissingChambreReturnsNotFound() throws Exception {
+        when(chambreService.getChambreById(999L))
+                .thenThrow(new NoSuchElementException("Chambre introuvable avec l'id 999"));
+
+        mockMvc.perform(get("/api/chambres/get")
+                        .param("idChambre", "999"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("Chambre introuvable avec l'id 999"));
+
+        verify(chambreService).getChambreById(999L);
     }
 
     @Test

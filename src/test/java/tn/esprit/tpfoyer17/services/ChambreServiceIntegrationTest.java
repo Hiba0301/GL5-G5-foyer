@@ -101,6 +101,16 @@ class ChambreServiceIntegrationTest {
     }
 
     @Test
+    void testUpdateChambreWithMissingIdDoesNotCreateChambre() {
+        long countBefore = chambreService.getAllChambres().size();
+        Chambre chambre = createChambre(999999L, 505L, TypeChambre.DOUBLE);
+
+        assertThrows(NoSuchElementException.class, () -> chambreService.updateChambre(chambre));
+
+        assertEquals(countBefore, chambreService.getAllChambres().size());
+    }
+
+    @Test
     void testDeleteChambre() {
         Chambre chambre = chambreService.addChambre(createChambre(404L, TypeChambre.DOUBLE));
         long id = chambre.getIdChambre();
@@ -111,6 +121,14 @@ class ChambreServiceIntegrationTest {
         assertTrue(chambreService.getAllChambres().stream()
                 .noneMatch(item -> item.getIdChambre() == id));
         log.info("Deleted chambre with id {}", id);
+    }
+
+    private Chambre createChambre(long id, long numero, TypeChambre type) {
+        return Chambre.builder()
+                .idChambre(id)
+                .numeroChambre(numero)
+                .typeChambre(type)
+                .build();
     }
 
     private Chambre createChambre(long numero, TypeChambre type) {

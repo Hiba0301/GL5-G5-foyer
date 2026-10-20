@@ -50,7 +50,15 @@ public class ChambreService implements IChambreService{
     }
     @Override
     public Chambre updateChambre(Chambre chambre) {
-        Chambre updatedChambre = chambreRepository.save(chambre);
+        long id = chambre.getIdChambre();
+        Chambre existingChambre = chambreRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Chambre introuvable id={}", id);
+                    return new NoSuchElementException("Chambre introuvable avec l'id " + id);
+                });
+        existingChambre.setNumeroChambre(chambre.getNumeroChambre());
+        existingChambre.setTypeChambre(chambre.getTypeChambre());
+        Chambre updatedChambre = chambreRepository.save(existingChambre);
         log.info("Chambre updated id={} numero={} type={}", updatedChambre.getIdChambre(), updatedChambre.getNumeroChambre(), updatedChambre.getTypeChambre());
         return updatedChambre;
     }
