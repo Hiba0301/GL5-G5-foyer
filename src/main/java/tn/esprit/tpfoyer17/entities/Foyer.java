@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.io.Serializable;
 import java.util.Set;
 
 @Entity
@@ -16,7 +15,7 @@ import java.util.Set;
 @Builder
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Foyer implements Serializable {
+public class Foyer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
