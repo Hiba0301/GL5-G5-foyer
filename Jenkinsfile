@@ -122,6 +122,11 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'aws-credentials', variable: 'AWS_CRED_FILE')]) {
                     withEnv(['AWS_SHARED_CREDENTIALS_FILE=' + AWS_CRED_FILE, 'KUBECONFIG=' + env.WORKSPACE + '/kubeconfig']) {
+
+                        withCredentials([string(credentialsId: 'mysql-root-password', variable: 'DB_PASSWORD')]) {
+                            sh 'kubectl create secret generic mysql-secret --from-literal=MYSQL_ROOT_PASSWORD=$DB_PASSWORD --dry-run=client -o yaml | kubectl apply -f -'
+                        }
+
                         sh "sed -i 's#IMAGE_PLACEHOLDER#${registry}:${BUILD_NUMBER}#' deployment.yaml"
                         sh 'kubectl apply -f deployment.yaml'
                         sh 'kubectl apply -f service.yaml'
