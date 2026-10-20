@@ -133,6 +133,16 @@ class ChambreServiceMockitoTest {
     }
 
     @Test
+    void testGetChambreNonReserverHandlesRepositoryFailure() {
+        when(chambreRepository.getChambresNonReserve())
+                .thenThrow(new RuntimeException("Repository failure"));
+
+        assertDoesNotThrow(() -> chambreService.getChambreNonReserver());
+
+        verify(chambreRepository).getChambresNonReserve();
+    }
+
+    @Test
     void testUpdateChambre() {
         Chambre chambre = createChambre(303L, TypeChambre.TRIPLE);
         when(chambreRepository.save(chambre)).thenReturn(chambre);
