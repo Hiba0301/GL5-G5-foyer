@@ -7,7 +7,6 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import tn.esprit.tpfoyer17.entities.Etudiant;
-import tn.esprit.tpfoyer17.repositories.EtudiantRepository;
 import tn.esprit.tpfoyer17.services.IEtudiantService;
 
 import java.util.List;
@@ -20,13 +19,10 @@ import java.util.List;
 public class EtudiantController {
     IEtudiantService etudiantService;
 
-    EtudiantRepository etudiantRepository;
-
     @PostMapping("add")
     public Etudiant addEtudiant(@Valid @RequestBody Etudiant etudiant){
         return etudiantService.addEtudiant(etudiant);
     }
-
 
     @GetMapping("getAll")
     public List<Etudiant> gettingAllEtudiant(){
