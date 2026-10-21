@@ -1,30 +1,27 @@
 package tn.esprit.tpfoyer17.configurations;
 
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.junit.jupiter.api.Test;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.stereotype.Component;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import java.time.Duration;
+import java.time.Instant;
 
-class AOPConfigTest {
+@Component
+@Aspect
+@Slf4j
+public class AOPConfig {
 
-    private final AOPConfig aop = new AOPConfig();
-
-    @Test
-    void tempsReturnsResult() throws Throwable {
-        ProceedingJoinPoint pjp = mock(ProceedingJoinPoint.class);
-        when(pjp.proceed()).thenReturn("ok");
-
-        assertEquals("ok", aop.temps(pjp));
-    }
-
-    @Test
-    void tempsPropagatesException() throws Throwable {
-        ProceedingJoinPoint pjp = mock(ProceedingJoinPoint.class);
-        when(pjp.proceed()).thenThrow(new IllegalStateException("boom"));
-
-        assertThrows(IllegalStateException.class, () -> aop.temps(pjp));
+    @Around("execution(* tn.esprit.tpfoyer17.services.ReservationService.ajouterReservation(..))")
+    public Object temps(ProceedingJoinPoint pjp) throws Throwable {
+        Instant start = Instant.now();
+        try {
+            return pjp.proceed();
+        } finally {
+            long elapsedMs = Duration.between(start, Instant.now()).toMillis();
+            log.info("temps d'execution = {} ms", elapsedMs);
+        }
     }
 }
