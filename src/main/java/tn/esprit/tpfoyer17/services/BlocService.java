@@ -43,12 +43,10 @@ public class BlocService implements IBlocService{
     @Override
     public Bloc getBlocById(long idBloc) {
         logger.debug("Recherche du bloc id={}", idBloc);
-        try {
-            return blocRepository.findById(idBloc).get();
-        } catch (NoSuchElementException exception) {
+        return blocRepository.findById(idBloc).orElseThrow(() -> {
             logger.error("Bloc introuvable : id={}", idBloc);
-            throw exception;
-        }
+            return new NoSuchElementException("Bloc introuvable : id=" + idBloc);
+        });
     }
 
     @Override
@@ -68,12 +66,15 @@ public class BlocService implements IBlocService{
     @Override
     public Bloc affecterChambresABloc(List<Long> numChambre, long idBloc) {
         logger.info("Affectation de {} chambre(s) au bloc id={}", numChambre.size(), idBloc);
-        Bloc bloc = blocRepository.findById(idBloc).get();
+        Bloc bloc = blocRepository.findById(idBloc).orElseThrow(() -> {
+            logger.error("Bloc introuvable : id={}", idBloc);
+            return new NoSuchElementException("Bloc introuvable : id=" + idBloc);
+        });
         List<Chambre> chambres = (List<Chambre>) chambreRepository.findAllById(numChambre);
-        for (Chambre chambre: chambres) {
+        for (Chambre chambre : chambres) {
             chambre.setBloc(bloc);
-            blocRepository.save(bloc);
         }
+        chambreRepository.saveAll(chambres);
         logger.debug("{} chambre(s) affectee(s) au bloc id={}", chambres.size(), idBloc);
         return bloc;
     }

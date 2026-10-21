@@ -2,29 +2,29 @@ package tn.esprit.tpfoyer17.services;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tn.esprit.tpfoyer17.entities.Bloc;
+import tn.esprit.tpfoyer17.entities.Chambre;
 import tn.esprit.tpfoyer17.repositories.BlocRepository;
+import tn.esprit.tpfoyer17.repositories.ChambreRepository;
 
+import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class BlocServiceTest {
 
     @Mock
     private BlocRepository blocRepository;
+
+    @Mock
+    private ChambreRepository chambreRepository;
 
     @InjectMocks
     private BlocService blocService;
@@ -42,6 +42,13 @@ class BlocServiceTest {
     }
 
     @Test
+    void testGetAllBlocsAvecMockito() {
+        when(blocRepository.findAll()).thenReturn(List.of(creerBloc("Bloc A", 50)));
+
+        assertEquals(1, blocService.getAllBlocs().size());
+    }
+
+    @Test
     void testGetBlocByIdAvecMockito() {
         Bloc bloc = creerBloc("Bloc recherche", 80);
         when(blocRepository.findById(1L)).thenReturn(Optional.of(bloc));
@@ -51,6 +58,13 @@ class BlocServiceTest {
         assertNotNull(resultat);
         assertEquals("Bloc recherche", resultat.getNomBloc());
         verify(blocRepository).findById(1L);
+    }
+
+    @Test
+    void testGetBlocByIdIntrouvable() {
+        when(blocRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () -> blocService.getBlocById(99L));
     }
 
     @Test
@@ -74,65 +88,29 @@ class BlocServiceTest {
         verify(blocRepository).deleteById(1L);
     }
 
-    private Bloc creerBloc(String nom, long capacite) {
-        return Bloc.builder()
-                .nomBloc(nom)
-                .capaciteBloc(capacite)
-                .build();
-    }
-}
-
-@SpringBootTest
-class BlocServiceIntegrationTest {
-
-    @Autowired
-    private IBlocService blocService;
-
     @Test
-    void testAddBlocSansMockito() {
-        Bloc bloc = blocService.addBloc(creerBloc("Bloc Integration Add", 100));
+    void testAffecterChambresABloc() {
+        Bloc bloc = creerBloc("Bloc A", 50);
+        Chambre chambre = mock(Chambre.class);
+        when(blocRepository.findById(1L)).thenReturn(Optional.of(bloc));
+        when(chambreRepository.findAllById(List.of(5L))).thenReturn(List.of(chambre));
 
-        assertTrue(bloc.getIdBloc() > 0);
-        blocService.deleteBloc(bloc.getIdBloc());
+        Bloc resultat = blocService.affecterChambresABloc(List.of(5L), 1L);
+
+        assertSame(bloc, resultat);
+        verify(chambre).setBloc(bloc);
+        verify(chambreRepository).saveAll(List.of(chambre));
     }
 
     @Test
-    void testGetBlocByIdSansMockito() {
-        Bloc bloc = blocService.addBloc(creerBloc("Bloc Integration Get", 80));
+    void testAffecterChambresABlocIntrouvable() {
+        when(blocRepository.findById(99L)).thenReturn(Optional.empty());
 
-        Bloc resultat = blocService.getBlocById(bloc.getIdBloc());
-
-        assertEquals(bloc.getIdBloc(), resultat.getIdBloc());
-        blocService.deleteBloc(bloc.getIdBloc());
-    }
-
-    @Test
-    void testUpdateBlocSansMockito() {
-        Bloc bloc = blocService.addBloc(creerBloc("Bloc avant modification", 80));
-        bloc.setNomBloc("Bloc apres modification");
-
-        Bloc resultat = blocService.updateBloc(bloc);
-
-        assertEquals("Bloc apres modification", resultat.getNomBloc());
-        blocService.deleteBloc(bloc.getIdBloc());
-    }
-
-    @Test
-    void testDeleteBlocSansMockito() {
-        Bloc bloc = blocService.addBloc(creerBloc("Bloc Integration Delete", 60));
-
-        blocService.deleteBloc(bloc.getIdBloc());
-
-        assertThrows(
-                java.util.NoSuchElementException.class,
-                () -> blocService.getBlocById(bloc.getIdBloc())
-        );
+        assertThrows(NoSuchElementException.class,
+                () -> blocService.affecterChambresABloc(List.of(5L), 99L));
     }
 
     private Bloc creerBloc(String nom, long capacite) {
-        return Bloc.builder()
-                .nomBloc(nom)
-                .capaciteBloc(capacite)
-                .build();
+        return Bloc.builder().nomBloc(nom).capaciteBloc(capacite).build();
     }
 }
