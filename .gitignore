@@ -36,3 +36,6 @@ build/
 .vscode/
 terraform/.terraform/
 terraform/*.tfstate*
+
+### Logs ###
+logs/
