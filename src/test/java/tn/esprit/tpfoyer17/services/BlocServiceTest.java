@@ -105,9 +105,10 @@ class BlocServiceTest {
     @Test
     void testAffecterChambresABlocIntrouvable() {
         when(blocRepository.findById(99L)).thenReturn(Optional.empty());
+        List<Long> ids = List.of(5L);
 
         assertThrows(NoSuchElementException.class,
-                () -> blocService.affecterChambresABloc(List.of(5L), 99L));
+                () -> blocService.affecterChambresABloc(ids, 99L));
     }
 
     private Bloc creerBloc(String nom, long capacite) {

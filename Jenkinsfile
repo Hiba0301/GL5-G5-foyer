@@ -30,7 +30,7 @@ pipeline {
         }
 
         stage('UNIT TESTS') {
-            steps { sh 'mvn test jacoco:report -Dtest="BlocServiceTest,BlocControllerTest,BlocMapperTest"' }
+            steps { sh 'mvn test jacoco:report -Dtest="BlocServiceTest,BlocControllerTest,BlocMapperTest,AOPConfigTest"' }
         }
 
         stage('MVN SONARQUBE') {
