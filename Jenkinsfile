@@ -9,6 +9,9 @@ pipeline {
         choice(name: 'AWS_ACTION', choices: ['none', 'deploy', 'destroy'],
                description: 'none = CI seule, deploy = EKS + déploiement, destroy = tout supprimer')
     }
+    triggers {
+            githubPush()
+        }
 
     environment {
         SPRING_DATASOURCE_URL = 'jdbc:mysql://mysql:3306/tpFoyer17?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC'
