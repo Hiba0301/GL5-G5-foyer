@@ -6,7 +6,7 @@ pipeline {
     }
 
     parameters {
-        choice(name: 'AWS_ACTION', choices: ['none', 'deploy', 'destroy'],
+        choice(name: 'AWS_ACTION', choices: ['deploy', 'none', 'destroy'],
                description: 'none = CI seule, deploy = EKS + déploiement, destroy = tout supprimer')
     }
     triggers {
@@ -163,10 +163,10 @@ pipeline {
 
                                             # Utiliser les images produites par ce build
                                             kubectl set image deployment/foyer-app \
-                                              foyer-app=$DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER
+                                              foyer-app=betchayma/gl5-g5-foyer:$BUILD_NUMBER
 
                                             kubectl set image deployment/foyer-front \
-                                              foyer-front=$DOCKERHUB_USER/foyer-front:$BUILD_NUMBER
+                                              foyer-front=betchayma/foyer-front:$BUILD_NUMBER
 
                                             # Attendre le démarrage des applications
                                             kubectl rollout status deployment/foyer-app --timeout=300s
