@@ -25,7 +25,7 @@ pipeline {
 
         // ---- Kubernetes (APP_DEPLOYMENT must match the name in deployment.yaml) ----
         K8S_NAMESPACE  = 'chambre'
-        APP_DEPLOYMENT = 'tpFoyer-17'
+        APP_DEPLOYMENT = 'foyer-chambre'
 
         // ---- AWS / Terraform ----
         AWS_REGION   = 'us-east-1'
