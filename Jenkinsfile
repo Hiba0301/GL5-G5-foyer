@@ -5,10 +5,13 @@ pipeline {
         maven 'maven3'
     }
 
-    parameters {
-        choice(name: 'AWS_ACTION', choices: ['deploy', 'none', 'destroy'],
-               description: 'none = CI seule, deploy = EKS + déploiement, destroy = tout supprimer')
-    }
+  parameters {
+      choice(
+          name: 'AWS_ACTION',
+          choices: ['deploy', 'none', 'destroy'],
+          description: 'deploy = EKS + déploiement, none = CI seule, destroy = supprimer les ressources AWS'
+      )
+  }
     triggers {
             githubPush()
         }
