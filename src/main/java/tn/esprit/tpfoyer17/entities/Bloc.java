@@ -19,17 +19,17 @@ public class Bloc {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Setter(AccessLevel.NONE)
-    long idBloc;
+    private long idBloc;
 
-    String nomBloc;
+    private String nomBloc;
 
-    long capaciteBloc;
+    private long capaciteBloc;
 
     @ToString.Exclude
     @ManyToOne
-    Foyer foyer;
+    private Foyer foyer;
 
     @ToString.Exclude
     @OneToMany(mappedBy = "bloc")
-    Set<Chambre> chambres;
+    private Set<Chambre> chambres;
 }

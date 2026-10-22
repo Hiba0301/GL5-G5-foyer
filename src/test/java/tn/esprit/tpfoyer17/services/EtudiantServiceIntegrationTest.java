@@ -57,10 +57,11 @@ class EtudiantServiceIntegrationTest {
         Etudiant etudiant = etudiantService.addEtudiant(
                 creerEtudiant("Integration Delete", "Salima"));
 
-        etudiantService.deleteEtudiant(etudiant.getIdEtudiant());
+        long id = etudiant.getIdEtudiant();
+        etudiantService.deleteEtudiant(id);
 
         assertThrows(NoSuchElementException.class,
-                () -> etudiantService.getEtudiantById(etudiant.getIdEtudiant()));
+                () -> etudiantService.getEtudiantById(id));
     }
 
     private Etudiant creerEtudiant(String nom, String prenom) {

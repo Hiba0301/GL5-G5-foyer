@@ -18,7 +18,7 @@ import java.util.Set;
 public class Reservation {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  //  @GeneratedValue(strategy = GenerationType.SEQUENCE)
     String idReservation;
 
     Date anneeUniversitaire;
