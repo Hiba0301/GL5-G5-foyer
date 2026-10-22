@@ -50,6 +50,7 @@ resource "aws_eks_node_group" "my_node_group" {
   node_role_arn   = var.role_arn
   subnet_ids      = var.subnet_ids
   instance_types  = ["t3.medium"]
+  ami_type        = "BOTTLEROCKET_x86_64"
 
   scaling_config {
     desired_size = 2
