@@ -170,12 +170,12 @@ pipeline {
 
     post {
         success {
-            emailext to: 'hibachaari2004@gmail.com',
+            emailext to: 'salimakhabou@gmail.com',
                 subject: "✅ ${env.JOB_NAME} #${env.BUILD_NUMBER} réussi (${params.AWS_ACTION})",
                 body: "Build réussi.<br>Détails : <a href='${env.BUILD_URL}'>${env.BUILD_URL}</a>"
         }
         failure {
-            emailext to: 'hibachaari2004@gmail.com',
+            emailext to: 'salimakhabou@gmail.com',
                 subject: "❌ ${env.JOB_NAME} #${env.BUILD_NUMBER} en échec",
                 body: "Le build a échoué.<br>Console : <a href='${env.BUILD_URL}console'>${env.BUILD_URL}console</a>",
                 attachLog: true
