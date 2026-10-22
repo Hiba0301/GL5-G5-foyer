@@ -43,7 +43,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class ReservationServiceTest {
+class ReservationServiceTest {
 
     @Mock
     private ReservationRepository reservationRepository;
@@ -264,7 +264,7 @@ class ReservationServiceIntegrationTest {
     @Disabled("Bug : cast List -> Set dans ajouterReservation (ClassCastException)")
     void testAjouterReservationCreeUneReservationSansMockito() {
         Bloc bloc = creerBloc("UNI-" + aleatoire());
-        Chambre chambre = creerChambre(bloc, TypeChambre.SIMPLE);
+        creerChambre(bloc, TypeChambre.SIMPLE);
         Etudiant etudiant = creerEtudiant();
 
         Reservation resultat = reservationService.ajouterReservation(bloc.getIdBloc(), etudiant.getCinEtudiant());
