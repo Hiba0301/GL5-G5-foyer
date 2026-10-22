@@ -15,6 +15,7 @@ import tn.esprit.tpfoyer17.repositories.ChambreRepository;
 import tn.esprit.tpfoyer17.repositories.EtudiantRepository;
 import tn.esprit.tpfoyer17.repositories.ReservationRepository;
 
+import java.time.LocalDate;
 import java.time.Year;
 import java.util.*;
 import java.time.ZoneId;
@@ -74,7 +75,7 @@ public class ReservationService implements IReservationService{
         } else {
             List<Etudiant> etudiants = new ArrayList<Etudiant>();
             etudiants.add(etudiantRepository.findByCinEtudiant(cinEtudiant));
-            Reservation reservation = Reservation.builder().anneeUniversitaire(new Date()).etudiants((Set<Etudiant>) etudiants).build();
+            Reservation reservation = Reservation.builder().anneeUniversitaire(LocalDate.now(ZONE)).etudiants((Set<Etudiant>) etudiants).build();
             Chambre chambre = chambreRepository.getForReservation(idBloc);
             Bloc bloc =blocRepository.findById(idBloc).get();
             Calendar calendar = Calendar.getInstance();
@@ -87,7 +88,7 @@ public class ReservationService implements IReservationService{
                 reservation.setEstValide(true);
             }
 
-        return reservationRepository.save(reservation);
+            return reservationRepository.save(reservation);
         }
 
 

@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Set;
 
 @Entity
@@ -21,7 +21,7 @@ public class Reservation {
     @Id
     String idReservation;
 
-    Date anneeUniversitaire;
+    LocalDate anneeUniversitaire;
 
     boolean estValide;
 

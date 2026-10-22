@@ -6,8 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.io.Serializable;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Set;
 
 @Entity
@@ -18,7 +17,7 @@ import java.util.Set;
 @Builder
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Etudiant  {
+public class Etudiant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,10 +30,10 @@ public class Etudiant  {
 
     long cinEtudiant;
 
-    Date dateNaissance;
+    LocalDate dateNaissance;
 
     @ToString.Exclude
     @ManyToMany(mappedBy = "etudiants")
-    Set<Reservation> reservations;
+    private Set<Reservation> reservations;
 
 }

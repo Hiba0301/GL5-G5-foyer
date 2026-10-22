@@ -43,6 +43,7 @@ public class ChambreController {
     public Chambre updatingChambre(@RequestBody ChambreDTO chambreDTO){
         return chambreService.updateChambre(chambreDTO.toEntity());
     }
+
     @GetMapping("get-par-nom-universite")
     public List<Chambre>  getChambresParNomUniversite( String nomUniversite) {
         return chambreService.getChambresParNomUniversite(nomUniversite);

@@ -10,7 +10,6 @@ import tn.esprit.tpfoyer17.entities.Universite;
 import tn.esprit.tpfoyer17.entities.enumerations.TypeChambre;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,8 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DtoMappingTest {
-
-    private static final ZoneId ZONE = ZoneId.of("Africa/Tunis");
 
     @Test
     void foyerDtoMapsAllFields() {
@@ -67,7 +64,7 @@ class DtoMappingTest {
         assertEquals("Ben Ali", etudiant.getNomEtudiant());
         assertEquals("Sami", etudiant.getPrenomEtudiant());
         assertEquals(12345678L, etudiant.getCinEtudiant());
-        assertEquals(naissance, etudiant.getDateNaissance().toInstant().atZone(ZONE).toLocalDate());
+        assertEquals(naissance, etudiant.getDateNaissance());
     }
 
     @Test
@@ -86,7 +83,7 @@ class DtoMappingTest {
 
         assertEquals("3-2026", reservation.getIdReservation());
         assertTrue(reservation.isEstValide());
-        assertEquals(annee, reservation.getAnneeUniversitaire().toInstant().atZone(ZONE).toLocalDate());
+        assertEquals(annee, reservation.getAnneeUniversitaire());
         assertEquals(1, reservation.getEtudiants().size());
         assertEquals(4L, reservation.getEtudiants().iterator().next().getIdEtudiant());
     }
