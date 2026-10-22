@@ -13,12 +13,14 @@ import tn.esprit.tpfoyer17.repositories.FoyerRepository;
 import tn.esprit.tpfoyer17.repositories.UniversiteRepository;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -116,6 +118,27 @@ class UniversiteServiceTest {
 
 		assertNull(resultat.getFoyer());
 		verify(universiteRepository).save(universite);
+	}
+
+	@Test
+	void testAffecterFoyerUniversiteInexistanteAvecMockito() {
+		when(universiteRepository.findByNomUniversite("Inconnue")).thenReturn(null);
+
+		NoSuchElementException ex = assertThrows(NoSuchElementException.class,
+				() -> universiteService.affecterFoyerAUniversite(1L, "Inconnue"));
+
+		assertEquals("Université introuvable avec le nom Inconnue", ex.getMessage());
+	}
+
+	@Test
+	void testAffecterFoyerInexistantAvecMockito() {
+		when(universiteRepository.findByNomUniversite("ESPRIT")).thenReturn(creerUniversite("ESPRIT", "Ariana"));
+		when(foyerRepository.findById(99L)).thenReturn(Optional.empty());
+
+		NoSuchElementException ex = assertThrows(NoSuchElementException.class,
+				() -> universiteService.affecterFoyerAUniversite(99L, "ESPRIT"));
+
+		assertEquals("Foyer introuvable avec l'id 99", ex.getMessage());
 	}
 
 	private Universite creerUniversite(String nom, String adresse) {

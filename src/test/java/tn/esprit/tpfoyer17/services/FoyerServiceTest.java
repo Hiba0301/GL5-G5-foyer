@@ -13,10 +13,12 @@ import tn.esprit.tpfoyer17.repositories.FoyerRepository;
 import tn.esprit.tpfoyer17.repositories.UniversiteRepository;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
@@ -102,6 +104,18 @@ class FoyerServiceTest {
 		foyerService.deleteFoyer(1L);
 
 		verify(foyerRepository).deleteById(1L);
+	}
+
+	@Test
+	void testAjouterFoyerEtAffecterUniversiteInexistanteAvecMockito() {
+		Foyer foyer = creerFoyer("Foyer orphelin", 100);
+		when(foyerRepository.save(foyer)).thenReturn(foyer);
+		when(universiteRepository.findById(99L)).thenReturn(Optional.empty());
+
+		NoSuchElementException ex = assertThrows(NoSuchElementException.class,
+				() -> foyerService.ajouterFoyerEtAffecterAUniversite(foyer, 99L));
+
+		assertEquals("Université introuvable avec l'id 99", ex.getMessage());
 	}
 
 	private Foyer creerFoyer(String nom, long capacite) {
