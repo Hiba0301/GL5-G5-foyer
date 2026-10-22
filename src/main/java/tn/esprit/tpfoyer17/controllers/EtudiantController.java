@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import tn.esprit.tpfoyer17.dto.EtudiantDTO;
 import tn.esprit.tpfoyer17.entities.Etudiant;
 import tn.esprit.tpfoyer17.repositories.EtudiantRepository;
 import tn.esprit.tpfoyer17.services.IEtudiantService;
@@ -27,10 +28,9 @@ public class EtudiantController {
         return etudiantRepository.save(etudiant);
     }*/
     @PostMapping("add")
-    public Etudiant addEtudiant(@Valid @RequestBody Etudiant etudiant){
-        return etudiantService.addEtudiant(etudiant);
+    public Etudiant addEtudiant(@Valid @RequestBody EtudiantDTO etudiantDTO){
+        return etudiantService.addEtudiant(etudiantDTO.toEntity());
     }
-
 
     @GetMapping("getAll")
     public List<Etudiant> gettingAllEtudiant(){
@@ -48,7 +48,7 @@ public class EtudiantController {
     }
 
     @PutMapping("update")
-    public Etudiant updatingEtudiant(@RequestBody Etudiant etudiant){
-        return etudiantService.updateEtudiant(etudiant);
+    public Etudiant updatingEtudiant(@RequestBody EtudiantDTO etudiantDTO){
+        return etudiantService.updateEtudiant(etudiantDTO.toEntity());
     }
 }

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import tn.esprit.tpfoyer17.dto.UniversiteDTO;
 import tn.esprit.tpfoyer17.entities.Universite;
 import tn.esprit.tpfoyer17.services.IUniversiteService;
 
@@ -19,8 +20,8 @@ public class UniversiteController {
     IUniversiteService universiteService;
 
     @PostMapping("add")
-    public Universite addingUniversite(@RequestBody Universite universite){
-        return universiteService.addUniversite(universite);
+    public Universite addingUniversite(@RequestBody UniversiteDTO universiteDTO){
+        return universiteService.addUniversite(universiteDTO.toEntity());
     }
     @GetMapping("getAll")
     public List<Universite> gettingAllUniversite(){
@@ -38,9 +39,10 @@ public class UniversiteController {
     }
 
     @PutMapping("update")
-    public Universite updatingUniversite(@RequestBody Universite universite){
-        return universiteService.updateUniversite(universite);
+    public Universite updatingUniversite(@RequestBody UniversiteDTO universiteDTO){
+        return universiteService.updateUniversite(universiteDTO.toEntity());
     }
+
 
     @PutMapping("affecter-foyer-universite")
     public Universite affecterFoyerAUniversite (@RequestParam("idFoyer") long idFoyer, @RequestParam("nomUniversite") String nomUniversite){

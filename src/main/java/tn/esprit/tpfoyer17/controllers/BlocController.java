@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import tn.esprit.tpfoyer17.dto.BlocDTO;
 import tn.esprit.tpfoyer17.entities.Bloc;
 import tn.esprit.tpfoyer17.services.IBlocService;
 
@@ -46,10 +47,11 @@ public class BlocController {
         blocService.deleteBloc(idBloc);
     }
 
+
     // Order 5
     @PutMapping("update")
-    public Bloc updatingBloc(@RequestBody Bloc bloc){
-        return blocService.updateBloc(bloc);
+    public Bloc updatingBloc(@RequestBody BlocDTO blocDTO){
+        return blocService.updateBloc(blocDTO.toEntity());
     }
 
     // Order 6
