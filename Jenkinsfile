@@ -151,5 +151,17 @@ pipeline {
                 }
             }
         }
+        post {
+            success {
+                mail to: 'chaima.sebri@etudiant-fst.utm.tn',
+                    subject: "SUCCESS : ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: "Le build #${env.BUILD_NUMBER} a réussi.\nDétails : ${env.BUILD_URL}"
+            }
+            failure {
+                mail to: 'chaima.sebri@etudiant-fst.utm.tn',
+                    subject: "FAILURE : ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                    body: "Le build #${env.BUILD_NUMBER} a échoué.\nConsultez les logs : ${env.BUILD_URL}console"
+            }
+        }
     }
 }
