@@ -30,6 +30,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -123,7 +124,7 @@ class ControllersUnitTest {
 
         assertEquals("Sami", result.getPrenomEtudiant());
         assertEquals(99L, result.getCinEtudiant());
-        assertTrue(result.getDateNaissance() != null);
+        assertNotNull(result.getDateNaissance());
     }
 
     @Test
