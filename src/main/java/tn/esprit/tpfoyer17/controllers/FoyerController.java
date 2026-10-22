@@ -43,7 +43,7 @@ public class FoyerController {
         return foyerService.updateFoyer(foyer);
     }
     @PostMapping("ajouter-affecter")
-    Foyer ajouterFoyerEtAffecterAUniversite (@RequestBody Foyer foyer, @RequestParam("idUniversite") long idUniversite){
+    public Foyer ajouterFoyerEtAffecterAUniversite (@RequestBody Foyer foyer, @RequestParam("idUniversite") long idUniversite){
         return foyerService.ajouterFoyerEtAffecterAUniversite(foyer,idUniversite);
     }
 
