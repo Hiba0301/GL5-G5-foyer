@@ -1,3 +1,15 @@
+terraform {
+  required_version = ">= 1.10.0"
+
+  backend "s3" {
+    bucket       = "gl5-g5-foyer-tfstate-479685814246-us-east-1"
+    key          = "foyer/terraform.tfstate"
+    region       = "us-east-1"
+    encrypt      = true
+    use_lockfile = true
+  }
+}
+
 provider "aws" {
   region = var.aws_region
 }

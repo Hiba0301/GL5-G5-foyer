@@ -99,9 +99,34 @@ pipeline {
                 withCredentials([file(credentialsId: 'aws-credentials', variable: 'AWS_CRED_FILE')]) {
                     withEnv(['AWS_SHARED_CREDENTIALS_FILE=' + AWS_CRED_FILE]) {
                         dir('terraform') {
-                            sh 'terraform init'
-                            sh 'terraform validate'
-                            sh 'terraform apply -auto-approve'
+                            sh '''
+                                set -eu
+                                terraform version
+                                terraform init -input=false -reconfigure
+                                terraform validate
+
+                                if ! terraform state show aws_security_group.eks_cluster_sg >/dev/null 2>&1; then
+                                    if aws ec2 describe-security-groups --region us-east-1 --group-ids sg-06a7ad240e516c53b >/dev/null; then
+                                        terraform import -input=false aws_security_group.eks_cluster_sg sg-06a7ad240e516c53b
+                                    fi
+                                fi
+
+                                if ! terraform state show aws_eks_cluster.my_cluster >/dev/null 2>&1; then
+                                    if aws eks describe-cluster --region us-east-1 --name mykubernetes >/dev/null; then
+                                        terraform import -input=false aws_eks_cluster.my_cluster mykubernetes
+                                    fi
+                                fi
+
+                                if ! terraform state show aws_eks_node_group.my_node_group >/dev/null 2>&1; then
+                                    if aws eks describe-nodegroup --region us-east-1 --cluster-name mykubernetes --nodegroup-name noeud1 >/dev/null; then
+                                        terraform import -input=false aws_eks_node_group.my_node_group mykubernetes:noeud1
+                                    fi
+                                fi
+
+                                terraform plan -input=false -out=tfplan
+                                terraform apply -input=false -auto-approve tfplan
+                                rm -f tfplan
+                            '''
                         }
                     }
                 }
