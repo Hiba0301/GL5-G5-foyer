@@ -17,7 +17,7 @@ import java.util.Set;
 @Builder
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Chambre implements Serializable {
+public class Chambre  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

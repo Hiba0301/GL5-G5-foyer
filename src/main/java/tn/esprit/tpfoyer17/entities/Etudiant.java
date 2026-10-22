@@ -18,7 +18,7 @@ import java.util.Set;
 @Builder
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Etudiant implements Serializable {
+public class Etudiant  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
