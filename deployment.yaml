@@ -1,7 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: foyer-config
+data:
+  SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/tpFoyer17?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+  SPRING_DATASOURCE_USERNAME: "root"
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mysql
+  labels:
+    app: mysql
 spec:
   replicas: 1
   selector:
@@ -15,42 +25,69 @@ spec:
       containers:
         - name: mysql
           image: mysql:8.0
-          env:
-            - name: MYSQL_ALLOW_EMPTY_PASSWORD
-              value: "yes"
-            - name: MYSQL_DATABASE
-              value: tpFoyer17
           ports:
             - containerPort: 3306
+          envFrom:
+            - secretRef:
+                name: mysql-secret
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "mysqladmin ping -h 127.0.0.1 -p$MYSQL_ROOT_PASSWORD"]
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: data
+          emptyDir: {}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: foyer-app
+  name: foyer-chambre
+  labels:
+    app: foyer-chambre
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: foyer-app
+      app: foyer-chambre
   template:
     metadata:
       labels:
-        app: foyer-app
+        app: foyer-chambre
     spec:
       initContainers:
         - name: wait-mysql
           image: busybox:1.36
-          command: ['sh', '-c', 'until nc -z mysql 3306; do echo "attente MySQL"; sleep 3; done']
+          command: ['sh', '-c', 'until nc -z mysql 3306; do echo "waiting for MySQL"; sleep 3; done']
       containers:
-        - name: foyer-app
-          image: hiba0301/gl5-g5-foyer:latest
-          imagePullPolicy: Always
+        - name: foyer-chambre
+          image: meriemmejri/tpfoyer:latest
           ports:
             - containerPort: 8082
+          envFrom:
+            - configMapRef:
+                name: foyer-config
           env:
-            - name: SPRING_DATASOURCE_URL
-              value: jdbc:mysql://mysql:3306/tpFoyer17?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-            - name: SPRING_DATASOURCE_USERNAME
-              value: root
             - name: SPRING_DATASOURCE_PASSWORD
-              value: ""
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_ROOT_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /tpFoyer17/v3/api-docs
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /tpFoyer17/v3/api-docs
+              port: 8082
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            failureThreshold: 5
