@@ -163,4 +163,12 @@ pipeline {
             }
         }
     }
+    post {
+            success {
+                emailext to: 'bettaherchayma77@gmail.com', subject: "SUCCESS : ${env.JOB_NAME} #${env.BUILD_NUMBER}", body: "Build reussi.\nDetails : ${env.BUILD_URL}"
+            }
+            failure {
+                emailext to: 'bettaherchayma77@gmail.com', subject: "FAILURE : ${env.JOB_NAME} #${env.BUILD_NUMBER}", body: "Build en echec.\nConsole : ${env.BUILD_URL}console", attachLog: true
+            }
+        }
 }
