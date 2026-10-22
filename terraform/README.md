@@ -18,6 +18,11 @@ state. Review the Terraform plan in the build log before applying it. The
 `DESTROY_INFRA` Jenkins parameter intentionally destroys managed infrastructure;
 do not enable it during a deployment.
 
+Jenkins runs Terraform from a fresh temporary directory for each build. This
+prevents stale local state or backend metadata in the persistent Jenkins
+workspace from prompting for an interactive backend migration or overriding
+the shared S3 state.
+
 For local work, use AWS credentials with access to the same S3 state bucket and
 run `terraform init -reconfigure` from this directory. Do not use a separate
 state file to apply changes to this cluster.

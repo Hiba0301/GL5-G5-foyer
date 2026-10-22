@@ -104,17 +104,20 @@ pipeline {
                                 TF_VERSION=1.10.5
                                 TF_SHA256=0566a24f5332098b15716ebc394be503f4094acba5ba529bf5eb0698ed5e2a90
                                 TF_DIR="$WORKSPACE/.tools/terraform-$TF_VERSION"
+                                TF_RUN_DIR="$(mktemp -d "$WORKSPACE/.terraform-run.XXXXXX")"
                                 TF_ARCHIVE="$(mktemp)"
-                                trap 'rm -f "$TF_ARCHIVE"' EXIT
+                                trap 'rm -f "$TF_ARCHIVE"; rm -rf "$TF_RUN_DIR"' EXIT
 
                                 mkdir -p "$TF_DIR"
                                 curl -fsSL "https://releases.hashicorp.com/terraform/$TF_VERSION/terraform_${TF_VERSION}_linux_amd64.zip" -o "$TF_ARCHIVE"
                                 echo "$TF_SHA256  $TF_ARCHIVE" | sha256sum -c -
                                 unzip -oq "$TF_ARCHIVE" -d "$TF_DIR"
                                 export PATH="$TF_DIR:$PATH"
+                                cp ./*.tf .terraform.lock.hcl terraform.tfvars "$TF_RUN_DIR/"
+                                cd "$TF_RUN_DIR"
 
                                 terraform version
-                                terraform init -input=false -reconfigure
+                                terraform init -input=false
                                 terraform validate
 
                                 if ! terraform state show aws_security_group.eks_cluster_sg >/dev/null 2>&1; then
