@@ -4,7 +4,8 @@ Terraform stores the EKS state in the private, versioned S3 bucket
 `gl5-g5-foyer-tfstate-479685814246-us-east-1`, at
 `foyer/terraform.tfstate`. S3 native lock files prevent concurrent Jenkins
 builds from changing the state at the same time. The backend requires Terraform
-1.10 or newer.
+1.10.5 or newer. Jenkins installs Terraform 1.10.5 and verifies its official
+Linux AMD64 archive checksum before running it.
 
 The bucket is intentionally managed separately from this Terraform
 configuration: deleting it would remove the state needed to manage the EKS
