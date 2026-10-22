@@ -12,8 +12,7 @@ import tn.esprit.tpfoyer17.repositories.FoyerRepository;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -92,7 +91,7 @@ class FoyerServiceIntegrationTest {
 
 		Foyer resultat = foyerService.addFoyer(foyer);
 
-		assertNotNull(resultat.getIdFoyer());
+		assertTrue(resultat.getIdFoyer() > 0);
 		foyerService.deleteFoyer(resultat.getIdFoyer());
 	}
 

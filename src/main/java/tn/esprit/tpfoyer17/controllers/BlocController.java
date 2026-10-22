@@ -25,8 +25,8 @@ public class BlocController {
     // Order 1
     @Operation(description = "methode pour ajouter des blocs",summary = "ajouter un bloc",operationId = "1")
     @PostMapping("add")
-    public Bloc addingBloc(@RequestBody Bloc bloc){
-        return blocService.addBloc(bloc);
+    public Bloc addingBloc(@RequestBody BlocDTO blocDTO){
+        return blocService.addBloc(blocDTO.toEntity());
     }
 
     // Order 2
