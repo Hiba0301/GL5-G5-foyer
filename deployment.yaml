@@ -43,7 +43,7 @@ spec:
           command: ['sh', '-c', 'until nc -z mysql 3306; do echo "attente MySQL"; sleep 3; done']
       containers:
         - name: foyer-app
-          image: hiba0301/gl5-g5-foyer:latest
+          image: betchayma/gl5-g5-foyer:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8082
@@ -54,3 +54,28 @@ spec:
               value: root
             - name: SPRING_DATASOURCE_PASSWORD
               value: ""
+
+
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foyer-front
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: foyer-front
+  template:
+    metadata:
+      labels:
+        app: foyer-front
+    spec:
+      containers:
+        - name: foyer-front
+          image: betchayma/foyer-front:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80

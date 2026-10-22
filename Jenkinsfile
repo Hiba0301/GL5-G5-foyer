@@ -72,7 +72,13 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')]) {
                     // amd64 : les serveurs AWS (t3.medium) ne sont pas en ARM comme le Mac
-                    sh 'docker build --platform linux/amd64 -t $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER -t $DOCKERHUB_USER/gl5-g5-foyer:latest .'
+                    sh 'docker build --platform linux/amd64 -t $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER -t $DOCKERHUB_USER/gl5-g5-foyer:latest .
+                     # Image frontend Angular
+                                    docker build --platform linux/amd64 \
+                                      -t "$DOCKERHUB_USER/foyer-front:$BUILD_NUMBER" \
+                                      -t "$DOCKERHUB_USER/foyer-front:latest" \
+                                      ./frontend
+                    '
                 }
             }
         }
@@ -84,6 +90,10 @@ pipeline {
                         echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin
                         docker push $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER
                         docker push $DOCKERHUB_USER/gl5-g5-foyer:latest
+
+                         # Publier le frontend
+                                        docker push "$DOCKERHUB_USER/foyer-front:$BUILD_NUMBER"
+                                        docker push "$DOCKERHUB_USER/foyer-front:latest"
                         docker logout
                     '''
                 }
@@ -142,13 +152,24 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'aws-credentials', variable: 'AWS_SHARED_CREDENTIALS_FILE')]) {
                     sh '''
-                        export KUBECONFIG=$WORKSPACE/kubeconfig
-                        kubectl get nodes -o wide
-                        kubectl apply -f deployment.yaml
-                        kubectl apply -f service.yaml
-                        kubectl rollout restart deployment/foyer-app
-                        kubectl rollout status deployment/foyer-app --timeout=300s
-                        kubectl get pods,svc -o wide
+                         export KUBECONFIG=$WORKSPACE/kubeconfig
+
+                                            kubectl get nodes -o wide
+
+                                            # Appliquer les Deployments et Services
+                                            kubectl apply -f deployment.yaml
+                                            kubectl apply -f service.yaml
+
+                                            # Utiliser les images produites par ce build
+                                            kubectl set image deployment/foyer-app \
+                                              foyer-app=$DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER
+
+                                            kubectl set image deployment/foyer-front \
+                                              foyer-front=$DOCKERHUB_USER/foyer-front:$BUILD_NUMBER
+
+                                            # Attendre le démarrage des applications
+                                            kubectl rollout status deployment/foyer-app --timeout=300s
+                                            kubectl rollout status deployment/foyer-front --timeout=300s
                     '''
                 }
             }
