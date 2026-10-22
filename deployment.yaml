@@ -65,7 +65,7 @@ spec:
           command: ['sh', '-c', 'until nc -z mysql 3306; do echo "waiting for MySQL"; sleep 3; done']
       containers:
         - name: foyer-chambre
-          image: meriemmejri/tpfoyer:latest
+          image: IMAGE_PLACEHOLDER
           ports:
             - containerPort: 8082
           envFrom:
