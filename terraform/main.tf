@@ -1,3 +1,4 @@
+# IAM role pre-created in the AWS lab account, used by the cluster and the nodes
 data "aws_iam_role" "lab_role" {
   name = "LabRole"
 }
@@ -6,6 +7,7 @@ data "aws_vpc" "default" {
   default = true
 }
 
+# EKS cannot use every availability zone (for example us-east-1e), so keep a, b and c
 data "aws_subnets" "default" {
   filter {
     name   = "vpc-id"
@@ -13,7 +15,7 @@ data "aws_subnets" "default" {
   }
   filter {
     name   = "availability-zone"
-    values = ["us-east-1a", "us-east-1b", "us-east-1c"]
+    values = ["${var.aws_region}a", "${var.aws_region}b", "${var.aws_region}c"]
   }
 }
 
@@ -40,6 +42,8 @@ resource "aws_eks_node_group" "nodes" {
   }
 }
 
+# Open NodePort 30000 on the security group that EKS creates for the nodes.
+# Terraform creates this rule during "terraform apply" and removes it on "destroy".
 resource "aws_security_group_rule" "nodeport" {
   type              = "ingress"
   from_port         = 30000
