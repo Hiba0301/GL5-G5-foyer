@@ -15,6 +15,8 @@ pipeline {
     }
 
     environment {
+        MAVEN_ARGS = '-B -ntp'
+
         // ---- Module identity (everything below is derived from it) ----
         MODULE        = 'chambre'
         SONAR_KEY     = 'tpFoyer-17'
