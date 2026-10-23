@@ -160,12 +160,7 @@ class ReservationServiceTest {
         assertTrue(resultat.isEstValide());
     }
 
-    /*
-     * DÉSACTIVÉ : bug réel dans le code actuel (cast List -> Set dans ajouterReservation).
-     * Retirer @Disabled une fois le service corrigé.
-     */
     @Test
-    @Disabled("Bug : cast List -> Set dans ajouterReservation (ClassCastException)")
     void testAjouterReservationNouvelleChambreSimpleAvecMockito() {
         Etudiant etudiant = Etudiant.builder().cinEtudiant(5L).build();
         Chambre chambre = Chambre.builder().idChambre(3L).typeChambre(TypeChambre.SIMPLE).build();
@@ -182,6 +177,65 @@ class ReservationServiceTest {
         assertNotNull(resultat);
         assertEquals(1, resultat.getEtudiants().size());
         assertFalse(resultat.isEstValide(), "une chambre SIMPLE est complète dès le 1er étudiant");
+    }
+
+    @Test
+    void testAjouterReservationNouvelleChambreDoubleResteValideAvecMockito() {
+        Etudiant etudiant = Etudiant.builder().cinEtudiant(6L).build();
+        Chambre chambre = Chambre.builder().idChambre(4L).typeChambre(TypeChambre.DOUBLE).build();
+        Bloc bloc = Bloc.builder().idBloc(2L).nomBloc("B").build();
+
+        when(reservationRepository.findForReservation(2L)).thenReturn(null);
+        when(etudiantRepository.findByCinEtudiant(6L)).thenReturn(etudiant);
+        when(chambreRepository.getForReservation(2L)).thenReturn(chambre);
+        when(blocRepository.findById(2L)).thenReturn(Optional.of(bloc));
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArgument(0));
+
+        Reservation resultat = reservationService.ajouterReservation(2L, 6L);
+
+        assertTrue(resultat.isEstValide(), "une chambre DOUBLE reste ouverte après le 1er étudiant");
+        assertTrue(resultat.getIdReservation().startsWith("4B"));
+    }
+
+    @Test
+    void testAjouterReservationTripleNonPleineResteValideAvecMockito() {
+        Etudiant dejaInscrit = Etudiant.builder().cinEtudiant(1L).build();
+        Etudiant nouveau = Etudiant.builder().cinEtudiant(2L).build();
+        Reservation reservation = Reservation.builder()
+                .idReservation("10")
+                .estValide(true)
+                .etudiants(new HashSet<>(Set.of(dejaInscrit)))
+                .build();
+        Chambre chambre = Chambre.builder().idChambre(10L).typeChambre(TypeChambre.TRIPLE).build();
+
+        when(reservationRepository.findForReservation(1L)).thenReturn(reservation);
+        when(chambreRepository.findByReservationsIdReservation("10")).thenReturn(chambre);
+        when(etudiantRepository.findByCinEtudiant(2L)).thenReturn(nouveau);
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArgument(0));
+
+        Reservation resultat = reservationService.ajouterReservation(1L, 2L);
+
+        assertEquals(2, resultat.getEtudiants().size());
+        assertTrue(resultat.isEstValide(), "une chambre TRIPLE avec 2 étudiants reste ouverte");
+    }
+
+    @Test
+    void testAjouterReservationExistanteChambreSimpleResteInchangeeAvecMockito() {
+        Reservation reservation = Reservation.builder()
+                .idReservation("11")
+                .estValide(true)
+                .etudiants(new HashSet<>())
+                .build();
+        Chambre chambre = Chambre.builder().idChambre(11L).typeChambre(TypeChambre.SIMPLE).build();
+
+        when(reservationRepository.findForReservation(1L)).thenReturn(reservation);
+        when(chambreRepository.findByReservationsIdReservation("11")).thenReturn(chambre);
+        when(etudiantRepository.findByCinEtudiant(3L)).thenReturn(Etudiant.builder().cinEtudiant(3L).build());
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArgument(0));
+
+        Reservation resultat = reservationService.ajouterReservation(1L, 3L);
+
+        assertTrue(resultat.isEstValide());
     }
 }
 
@@ -257,11 +311,12 @@ class ReservationServiceIntegrationTest {
     }
 
     /*
-     * DÉSACTIVÉ : bug réel (cast List -> Set dans ajouterReservation).
-     * Retirer @Disabled une fois le service corrigé.
+     * DÉSACTIVÉ : ChambreRepository.getForReservation fait une jointure interne sur les réservations,
+     * elle ne trouve donc jamais une chambre encore vide (renvoie null).
+     * Retirer @Disabled une fois la requête corrigée.
      */
     @Test
-    @Disabled("Bug : cast List -> Set dans ajouterReservation (ClassCastException)")
+    @Disabled("Bug : getForReservation ne trouve pas les chambres sans réservation (jointure interne)")
     void testAjouterReservationCreeUneReservationSansMockito() {
         Bloc bloc = creerBloc("UNI-" + aleatoire());
         creerChambre(bloc, TypeChambre.SIMPLE);
