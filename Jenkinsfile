@@ -104,24 +104,30 @@ pipeline {
             }
         }
 
-        stage('RUN CONTAINER') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')]) {
-                    sh '''
-                        docker rm -f foyer-app || true
-                        docker run -d --name foyer-app --network devops -p 8082:8082 \
-                          -e SPRING_DATASOURCE_URL="$SPRING_DATASOURCE_URL" \
-                          -e SPRING_DATASOURCE_USERNAME=root \
-                          -e SPRING_DATASOURCE_PASSWORD= \
-                          $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER
+                stage('RUN CONTAINER') {
+                    steps {
+                        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')]) {
+                            sh '''
+                                docker rm -f foyer-app || true
+                                docker run -d --name foyer-app --network devops --network-alias foyer-app-service -p 8082:8082 \
+                                  -e SPRING_DATASOURCE_URL="$SPRING_DATASOURCE_URL" \
+                                  -e SPRING_DATASOURCE_USERNAME=root \
+                                  -e SPRING_DATASOURCE_PASSWORD= \
+                                  $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER
 
-                          docker rm -f foyer-front || true
-                          docker run -d --name foyer-front --network devops -p 8090:80 \
-                          $DOCKERHUB_USER/foyer-front:$BUILD_NUMBER
-                    '''
+                                docker rm -f foyer-front || true
+                                docker run -d --name foyer-front --network devops -p 8090:80 \
+                                  $DOCKERHUB_USER/foyer-front:$BUILD_NUMBER
+
+                                sleep 5
+                                if [ "$(docker inspect -f '{{.State.Running}}' foyer-front)" != "true" ]; then
+                                  docker logs foyer-front
+                                  exit 1
+                                fi
+                            '''
+                        }
+                    }
                 }
-            }
-        }
 
         stage('TEST AWS CREDENTIALS') {
             when { expression { params.AWS_ACTION != 'none' } }
