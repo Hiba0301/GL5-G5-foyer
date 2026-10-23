@@ -21,6 +21,7 @@ target/
 
 .DS_Store
 *.log
+logs/
 
 ### NetBeans ###
 /nbproject/private/
@@ -36,6 +37,6 @@ build/
 .vscode/
 terraform/.terraform/
 terraform/*.tfstate*
-
+terraform/*.tfstate.backup
 ### Logs ###
 logs/
