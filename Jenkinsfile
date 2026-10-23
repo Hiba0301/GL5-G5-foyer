@@ -197,14 +197,39 @@ pipeline {
     post {
         success {
             emailext to: "${env.NOTIFY_EMAIL}",
-                subject: "SUCCESS ${env.JOB_NAME} #${env.BUILD_NUMBER} (${params.AWS_ACTION})",
-                body: "Build succeeded.<br>Details: <a href='${env.BUILD_URL}'>${env.BUILD_URL}</a>"
+                recipientProviders: [developers(), requestor()],
+                mimeType: 'text/html',
+                subject: "SUCCESS | ${env.JOB_NAME} #${env.BUILD_NUMBER} (${params.AWS_ACTION})",
+                body: """
+                    <h2 style="color:#2e7d32;">Build succeeded</h2>
+                    <table cellpadding="6" style="border-collapse:collapse;">
+                      <tr><td><b>Job</b></td><td>${env.JOB_NAME}</td></tr>
+                      <tr><td><b>Build</b></td><td>#${env.BUILD_NUMBER}</td></tr>
+                      <tr><td><b>Module</b></td><td>${env.MODULE}</td></tr>
+                      <tr><td><b>AWS action</b></td><td>${params.AWS_ACTION}</td></tr>
+                      <tr><td><b>Docker image</b></td><td>${env.REGISTRY}:${env.MODULE}-${env.BUILD_NUMBER}</td></tr>
+                      <tr><td><b>Duration</b></td><td>${currentBuild.durationString}</td></tr>
+                    </table>
+                    <p><a href="${env.BUILD_URL}">Open the build</a></p>
+                """
         }
         failure {
             emailext to: "${env.NOTIFY_EMAIL}",
-                subject: "FAILED ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: "Build failed.<br>Console: <a href='${env.BUILD_URL}console'>${env.BUILD_URL}console</a>",
-                attachLog: true
+                recipientProviders: [developers(), requestor()],
+                mimeType: 'text/html',
+                subject: "FAILED | ${env.JOB_NAME} #${env.BUILD_NUMBER} (${params.AWS_ACTION})",
+                attachLog: true,
+                body: """
+                    <h2 style="color:#c62828;">Build failed</h2>
+                    <table cellpadding="6" style="border-collapse:collapse;">
+                      <tr><td><b>Job</b></td><td>${env.JOB_NAME}</td></tr>
+                      <tr><td><b>Build</b></td><td>#${env.BUILD_NUMBER}</td></tr>
+                      <tr><td><b>AWS action</b></td><td>${params.AWS_ACTION}</td></tr>
+                      <tr><td><b>Duration</b></td><td>${currentBuild.durationString}</td></tr>
+                    </table>
+                    <p><a href="${env.BUILD_URL}console">Open the console output</a></p>
+                    <p>The full log is attached.</p>
+                """
         }
     }
 }
