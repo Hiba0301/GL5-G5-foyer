@@ -4,7 +4,6 @@ export const routes: Routes = [
   { path: '', redirectTo: 'foyers', pathMatch: 'full' },
   { path: 'reservations', title: 'Réservations', loadComponent: () => import('./pages/gestion/gestion').then((m) => m.Gestion) },
   { path: 'blocs', title: 'Blocs', loadComponent: () => import('./pages/gestion/gestion').then((m) => m.Gestion) },
-  { path: 'chambres', title: 'Chambres', loadComponent: () => import('./pages/gestion/gestion').then((m) => m.Gestion) },
   { path: 'etudiants', title: 'Étudiants', loadComponent: () => import('./pages/gestion/gestion').then((m) => m.Gestion) },
   {
     path: 'foyers',
@@ -35,6 +34,21 @@ export const routes: Routes = [
     path: 'etudiants/:id/modifier',
     title: 'Modifier un étudiant',
     loadComponent: () => import('./pages/etudiants/etudiant-form').then((m) => m.EtudiantForm),
+  },
+  {
+    path: 'chambres',
+    title: 'Chambres',
+    loadComponent: () => import('./pages/chambres/chambre-list').then((m) => m.ChambreList),
+  },
+  {
+    path: 'chambres/nouveau',
+    title: 'Ajouter une chambre',
+    loadComponent: () => import('./pages/chambres/chambre-form').then((m) => m.ChambreForm),
+  },
+  {
+    path: 'chambres/:id/modifier',
+    title: 'Modifier une chambre',
+    loadComponent: () => import('./pages/chambres/chambre-form').then((m) => m.ChambreForm),
   },
   {
     path: 'universites',

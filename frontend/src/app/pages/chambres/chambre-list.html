@@ -1,0 +1,87 @@
+<div class="page-header">
+  <h1>Chambres</h1>
+  <a class="btn btn-primary" routerLink="/chambres/nouveau">+ Ajouter une chambre</a>
+</div>
+
+@if (erreur(); as e) {
+  <div class="alert alert-error" role="alert">{{ e }} <button class="close" (click)="erreur.set(null)">×</button></div>
+}
+@if (succes(); as s) {
+  <div class="alert alert-success" role="status">{{ s }} <button class="close" (click)="succes.set(null)">×</button></div>
+}
+
+<section class="card chambre-filter-card">
+  <h2>Filtrer les chambres</h2>
+  <form class="chambre-filter-row" [formGroup]="filtre" (ngSubmit)="rechercher()">
+    <div class="chambre-filter-field chambre-filter-select">
+      <label for="mode">Filtrer par</label>
+      <select id="mode" formControlName="mode" (change)="changementFiltre()">
+        @for (option of filtres; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select>
+    </div>
+
+    @if (filtre.controls.mode.value === 'universite' || filtre.controls.mode.value === 'nonReserve') {
+      <div class="chambre-filter-field chambre-filter-text">
+        <label for="nomUniversite">Université</label>
+        <input id="nomUniversite" type="text" formControlName="nomUniversite" placeholder="Université" />
+      </div>
+    }
+
+    @if (filtre.controls.mode.value === 'bloc' || filtre.controls.mode.value === 'jpql') {
+      <div class="chambre-filter-field chambre-filter-id">
+        <label for="idBloc">ID du bloc</label>
+        <input id="idBloc" type="number" min="1" formControlName="idBloc" placeholder="ID du bloc" />
+      </div>
+    }
+
+    @if (filtre.controls.mode.value !== 'all' && filtre.controls.mode.value !== 'universite') {
+      <div class="chambre-filter-field chambre-filter-select">
+        <label for="type">Type</label>
+        <select id="type" formControlName="type">
+          @for (type of types; track type) {
+            <option [value]="type">{{ type }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <div class="chambre-filter-actions">
+      <button class="btn btn-primary" type="submit" [disabled]="rechercheDesactivee()">Rechercher</button>
+      <button class="btn" type="button" (click)="reinitialiser()" [disabled]="chargement()">Réinitialiser</button>
+    </div>
+  </form>
+</section>
+
+@if (chargement()) {
+  <p class="loading-message" role="status">Chargement...</p>
+} @else {
+  <p class="results-count">{{ chambres().length }} {{ chambres().length === 1 ? 'chambre' : 'chambres' }}</p>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Numéro</th>
+        <th>Type</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @if (chambres().length === 0) {
+        <tr><td colspan="4" class="empty-row">Aucune chambre trouvée</td></tr>
+      }
+      @for (chambre of chambres(); track chambre.idChambre) {
+        <tr>
+          <td>{{ chambre.idChambre }}</td>
+          <td>{{ chambre.numeroChambre }}</td>
+          <td><span class="badge badge-{{ chambre.typeChambre.toLowerCase() }}">{{ chambre.typeChambre }}</span></td>
+          <td class="actions">
+            <a class="btn btn-small" [routerLink]="['/chambres', chambre.idChambre, 'modifier']">Modifier</a>
+            <button class="btn btn-small btn-danger" (click)="supprimer(chambre)">Supprimer</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
