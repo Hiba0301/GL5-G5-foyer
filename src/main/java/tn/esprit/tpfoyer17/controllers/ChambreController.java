@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import tn.esprit.tpfoyer17.dto.ChambreDTO;
 import tn.esprit.tpfoyer17.entities.Chambre;
 import tn.esprit.tpfoyer17.entities.enumerations.TypeChambre;
-import tn.esprit.tpfoyer17.services.ChambreService;
 import tn.esprit.tpfoyer17.services.IChambreService;
 
 import java.util.List;

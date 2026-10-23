@@ -43,7 +43,7 @@ spec:
           command: ['sh', '-c', 'until nc -z mysql 3306; do echo "attente MySQL"; sleep 3; done']
       containers:
         - name: foyer-app
-          image: betchayma/gl5-g5-foyer:latest
+          image: salimakh/gl5-g5-foyer:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8082

@@ -1,42 +1,60 @@
-data "aws_iam_role" "lab_role" {
-  name = "LabRole"
+provider "aws" {
+  region = var.aws_region
 }
 
-data "aws_vpc" "default" {
-  default = true
-}
+resource "aws_security_group" "eks_cluster_sg" {
+  name        = "eks-cluster-sg-${var.cluster_name}"
+  description = "Security group for EKS cluster ${var.cluster_name}"
+  vpc_id      = var.vpc_id
 
-data "aws_subnets" "default" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
+  ingress {
+    from_port   = 8082
+    to_port     = 8082
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
-  filter {
-    name   = "availability-zone"
-    values = ["us-east-1a", "us-east-1b", "us-east-1c"]
+
+  ingress {
+    from_port   = 30000
+    to_port     = 30000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "eks-cluster-sg-${var.cluster_name}"
   }
 }
 
-resource "aws_eks_cluster" "this" {
+resource "aws_eks_cluster" "my_cluster" {
   name     = var.cluster_name
-  role_arn = data.aws_iam_role.lab_role.arn
+  role_arn = var.role_arn
+  version  = var.kubernetes_version
 
   vpc_config {
-    subnet_ids = data.aws_subnets.default.ids
+    subnet_ids         = var.subnet_ids
+    security_group_ids = [aws_security_group.eks_cluster_sg.id]
   }
 }
 
-resource "aws_eks_node_group" "nodes" {
-  cluster_name    = aws_eks_cluster.this.name
-  node_group_name = "${var.cluster_name}-nodes"
-  node_role_arn   = data.aws_iam_role.lab_role.arn
-  subnet_ids      = data.aws_subnets.default.ids
+resource "aws_eks_node_group" "my_node_group" {
+  cluster_name    = aws_eks_cluster.my_cluster.name
+  node_group_name = "noeud1"
+  node_role_arn   = var.role_arn
+  subnet_ids      = var.subnet_ids
   instance_types  = ["t3.medium"]
 
   scaling_config {
     desired_size = 2
+    max_size     = 3
     min_size     = 1
-    max_size     = 2
   }
 }
 
@@ -47,7 +65,7 @@ resource "aws_security_group_rule" "nodeport_backend" {
   to_port           = 30000
   protocol          = "tcp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
+  security_group_id = aws_eks_cluster.my_cluster.vpc_config[0].cluster_security_group_id
 }
 
 resource "aws_security_group_rule" "nodeport_frontend" {

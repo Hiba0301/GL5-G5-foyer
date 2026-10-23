@@ -22,6 +22,21 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/foyers/foyer-form').then((m) => m.FoyerForm),
   },
   {
+    path: 'etudiants',
+    title: 'Étudiants',
+    loadComponent: () => import('./pages/etudiants/etudiant-list').then((m) => m.EtudiantList),
+  },
+  {
+    path: 'etudiants/nouveau',
+    title: 'Ajouter un étudiant',
+    loadComponent: () => import('./pages/etudiants/etudiant-form').then((m) => m.EtudiantForm),
+  },
+  {
+    path: 'etudiants/:id/modifier',
+    title: 'Modifier un étudiant',
+    loadComponent: () => import('./pages/etudiants/etudiant-form').then((m) => m.EtudiantForm),
+  },
+  {
     path: 'universites',
     title: 'Universités',
     loadComponent: () => import('./pages/universites/universite-list').then((m) => m.UniversiteList),

@@ -12,6 +12,7 @@ import tn.esprit.tpfoyer17.services.IFoyerService;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @AllArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE)

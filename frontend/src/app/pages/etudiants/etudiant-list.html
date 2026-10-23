@@ -1,0 +1,45 @@
+<div class="page-header">
+  <h1>Étudiants</h1>
+  <a class="btn btn-primary" routerLink="/etudiants/nouveau">+ Ajouter un étudiant</a>
+</div>
+
+@if (erreur(); as e) {
+  <div class="alert alert-error" role="alert">{{ e }} <button class="close" (click)="erreur.set(null)">×</button></div>
+}
+@if (succes(); as s) {
+  <div class="alert alert-success" role="status">{{ s }} <button class="close" (click)="succes.set(null)">×</button></div>
+}
+
+@if (chargement()) {
+  <p class="muted">Chargement…</p>
+} @else if (etudiants().length === 0 && !erreur()) {
+  <p class="muted">Aucun étudiant pour le moment.</p>
+} @else {
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nom</th>
+        <th>Prénom</th>
+        <th>CIN</th>
+        <th>Date de naissance</th>
+        <th class="actions">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (etudiant of etudiants(); track etudiant.idEtudiant) {
+        <tr>
+          <td>{{ etudiant.idEtudiant }}</td>
+          <td>{{ etudiant.nomEtudiant }}</td>
+          <td>{{ etudiant.prenomEtudiant }}</td>
+          <td>{{ etudiant.cinEtudiant }}</td>
+          <td>{{ formatDate(etudiant.dateNaissance) }}</td>
+          <td class="actions">
+            <a class="btn btn-small" [routerLink]="['/etudiants', etudiant.idEtudiant, 'modifier']">Modifier</a>
+            <button class="btn btn-small btn-danger" (click)="supprimer(etudiant)">Supprimer</button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

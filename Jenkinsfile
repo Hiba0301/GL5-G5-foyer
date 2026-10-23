@@ -16,6 +16,10 @@ pipeline {
             githubPush()
         }
 
+    triggers {
+        githubPush()
+    }
+
     environment {
         SPRING_DATASOURCE_URL = 'jdbc:mysql://mysql:3306/tpFoyer17?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC'
         SPRING_DATASOURCE_USERNAME = 'root'
@@ -201,12 +205,18 @@ pipeline {
             }
         }
     }
+
     post {
-            success {
-                emailext to: 'bettaherchayma77@gmail.com', subject: "SUCCESS : ${env.JOB_NAME} #${env.BUILD_NUMBER}", body: "Build reussi.\nDetails : ${env.BUILD_URL}"
-            }
-            failure {
-                emailext to: 'bettaherchayma77@gmail.com', subject: "FAILURE : ${env.JOB_NAME} #${env.BUILD_NUMBER}", body: "Build en echec.\nConsole : ${env.BUILD_URL}console", attachLog: true
-            }
+        success {
+            emailext to: 'salimakhabou@gmail.com',
+                subject: "✅ ${env.JOB_NAME} #${env.BUILD_NUMBER} réussi (${params.AWS_ACTION})",
+                body: "Build réussi.<br>Détails : <a href='${env.BUILD_URL}'>${env.BUILD_URL}</a>"
         }
+        failure {
+            emailext to: 'salimakhabou@gmail.com',
+                subject: "❌ ${env.JOB_NAME} #${env.BUILD_NUMBER} en échec",
+                body: "Le build a échoué.<br>Console : <a href='${env.BUILD_URL}console'>${env.BUILD_URL}console</a>",
+                attachLog: true
+        }
+    }
 }
