@@ -5,10 +5,16 @@ pipeline {
         maven 'maven3'
     }
 
-    parameters {
-        choice(name: 'AWS_ACTION', choices: ['none', 'deploy', 'destroy'],
-               description: 'none = CI seule, deploy = EKS + déploiement, destroy = tout supprimer')
-    }
+  parameters {
+      choice(
+          name: 'AWS_ACTION',
+          choices: ['deploy', 'none', 'destroy'],
+          description: 'deploy = EKS + déploiement, none = CI seule, destroy = supprimer les ressources AWS'
+      )
+  }
+    triggers {
+            githubPush()
+        }
 
     triggers {
         githubPush()
@@ -73,7 +79,14 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')]) {
                     // amd64 : les serveurs AWS (t3.medium) ne sont pas en ARM comme le Mac
-                    sh 'docker build --platform linux/amd64 -t $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER -t $DOCKERHUB_USER/gl5-g5-foyer:latest .'
+                    sh '''
+                    docker build --platform linux/amd64 -t $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER -t $DOCKERHUB_USER/gl5-g5-foyer:latest .
+                     # Image frontend Angular
+                                    docker build --platform linux/amd64 \
+                                      -t "$DOCKERHUB_USER/foyer-front:$BUILD_NUMBER" \
+                                      -t "$DOCKERHUB_USER/foyer-front:latest" \
+                                      ./frontend
+                    '''
                 }
             }
         }
@@ -85,26 +98,40 @@ pipeline {
                         echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin
                         docker push $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER
                         docker push $DOCKERHUB_USER/gl5-g5-foyer:latest
+
+                         # Publier le frontend
+                                        docker push "$DOCKERHUB_USER/foyer-front:$BUILD_NUMBER"
+                                        docker push "$DOCKERHUB_USER/foyer-front:latest"
                         docker logout
                     '''
                 }
             }
         }
 
-        stage('RUN CONTAINER') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')]) {
-                    sh '''
-                        docker rm -f foyer-app || true
-                        docker run -d --name foyer-app --network devops -p 8082:8082 \
-                          -e SPRING_DATASOURCE_URL="$SPRING_DATASOURCE_URL" \
-                          -e SPRING_DATASOURCE_USERNAME=root \
-                          -e SPRING_DATASOURCE_PASSWORD= \
-                          $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER
-                    '''
+                stage('RUN CONTAINER') {
+                    steps {
+                        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')]) {
+                            sh '''
+                                docker rm -f foyer-app || true
+                                docker run -d --name foyer-app --network devops --network-alias foyer-app-service -p 8082:8082 \
+                                  -e SPRING_DATASOURCE_URL="$SPRING_DATASOURCE_URL" \
+                                  -e SPRING_DATASOURCE_USERNAME=root \
+                                  -e SPRING_DATASOURCE_PASSWORD= \
+                                  $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER
+
+                                docker rm -f foyer-front || true
+                                docker run -d --name foyer-front --network devops -p 8090:80 \
+                                  $DOCKERHUB_USER/foyer-front:$BUILD_NUMBER
+
+                                sleep 5
+                                if [ "$(docker inspect -f '{{.State.Running}}' foyer-front)" != "true" ]; then
+                                  docker logs foyer-front
+                                  exit 1
+                                fi
+                            '''
+                        }
+                    }
                 }
-            }
-        }
 
         stage('TEST AWS CREDENTIALS') {
             when { expression { params.AWS_ACTION != 'none' } }
@@ -143,13 +170,24 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'aws-credentials', variable: 'AWS_SHARED_CREDENTIALS_FILE')]) {
                     sh '''
-                        export KUBECONFIG=$WORKSPACE/kubeconfig
-                        kubectl get nodes -o wide
-                        kubectl apply -f deployment.yaml
-                        kubectl apply -f service.yaml
-                        kubectl rollout restart deployment/foyer-app
-                        kubectl rollout status deployment/foyer-app --timeout=300s
-                        kubectl get pods,svc -o wide
+                         export KUBECONFIG=$WORKSPACE/kubeconfig
+
+                                            kubectl get nodes -o wide
+
+                                            # Appliquer les Deployments et Services
+                                            kubectl apply -f deployment.yaml
+                                            kubectl apply -f service.yaml
+
+                                            # Utiliser les images produites par ce build
+                                            kubectl set image deployment/foyer-app \
+                                              foyer-app=betchayma/gl5-g5-foyer:$BUILD_NUMBER
+
+                                            kubectl set image deployment/foyer-front \
+                                              foyer-front=betchayma/foyer-front:$BUILD_NUMBER
+
+                                            # Attendre le démarrage des applications
+                                            kubectl rollout status deployment/foyer-app --timeout=300s
+                                            kubectl rollout status deployment/foyer-front --timeout=300s
                     '''
                 }
             }

@@ -6,6 +6,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import tn.esprit.tpfoyer17.entities.enumerations.TypeChambre;
 
+import java.io.Serializable;
 import java.util.Set;
 
 @Entity
@@ -16,7 +17,7 @@ import java.util.Set;
 @Builder
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Chambre {
+public class Chambre  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -47,6 +47,7 @@ public class BlocController {
         blocService.deleteBloc(idBloc);
     }
 
+
     // Order 5
     @PutMapping("update")
     public BlocDTO updatingBloc(@RequestBody BlocDTO blocDTO){

@@ -25,6 +25,7 @@ import tn.esprit.tpfoyer17.repositories.UniversiteRepository;
 
 import java.time.Year;
 import java.util.Arrays;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -43,7 +44,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class ReservationServiceTest {
+class ReservationServiceTest {
 
     @Mock
     private ReservationRepository reservationRepository;
@@ -264,7 +265,7 @@ class ReservationServiceIntegrationTest {
     @Disabled("Bug : cast List -> Set dans ajouterReservation (ClassCastException)")
     void testAjouterReservationCreeUneReservationSansMockito() {
         Bloc bloc = creerBloc("UNI-" + aleatoire());
-        Chambre chambre = creerChambre(bloc, TypeChambre.SIMPLE);
+        creerChambre(bloc, TypeChambre.SIMPLE);
         Etudiant etudiant = creerEtudiant();
 
         Reservation resultat = reservationService.ajouterReservation(bloc.getIdBloc(), etudiant.getCinEtudiant());
@@ -316,7 +317,7 @@ class ReservationServiceIntegrationTest {
     private Reservation creerReservation(Chambre chambre, boolean valide, Etudiant... etudiants) {
         Reservation reservation = reservationRepository.save(Reservation.builder()
                 .idReservation(chambre.getIdChambre() + "-" + Year.now().getValue())
-                .anneeUniversitaire(new Date())
+                .anneeUniversitaire(LocalDate.now())
                 .estValide(valide)
                 .etudiants(new HashSet<>(Arrays.asList(etudiants)))
                 .build());

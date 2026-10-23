@@ -8,6 +8,10 @@ export function messageErreur(err: unknown, contexte: string): string {
   if (err.status === 0) {
     return `${contexte} : serveur injoignable. Vérifiez que le backend tourne sur le port 8082.`;
   }
+  // Message métier renvoyé par l'API : {"error": "..."} (404, 409...)
+  if (typeof err.error?.error === 'string') {
+    return err.error.error;
+  }
   if (err.status === 404) {
     return `${contexte} : ressource introuvable (404).`;
   }

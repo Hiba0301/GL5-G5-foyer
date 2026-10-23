@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import tn.esprit.tpfoyer17.dto.ChambreDTO;
 import tn.esprit.tpfoyer17.entities.Chambre;
 import tn.esprit.tpfoyer17.entities.enumerations.TypeChambre;
 import tn.esprit.tpfoyer17.services.IChambreService;
@@ -19,8 +20,8 @@ import java.util.List;
 public class ChambreController {
     IChambreService chambreService;
     @PostMapping("add")
-    public Chambre addingChambre(@RequestBody Chambre chambre){
-        return chambreService.addChambre(chambre);
+    public Chambre addingChambre(@RequestBody ChambreDTO chambreDTO){
+        return chambreService.addChambre(chambreDTO.toEntity());
     }
     @GetMapping("getAll")
     public List<Chambre> gettingAllChambre(){
@@ -38,8 +39,8 @@ public class ChambreController {
     }
 
     @PutMapping("update")
-    public Chambre updatingChambre(@RequestBody Chambre chambre){
-        return chambreService.updateChambre(chambre);
+    public Chambre updatingChambre(@RequestBody ChambreDTO chambreDTO){
+        return chambreService.updateChambre(chambreDTO.toEntity());
     }
 
     @GetMapping("get-par-nom-universite")

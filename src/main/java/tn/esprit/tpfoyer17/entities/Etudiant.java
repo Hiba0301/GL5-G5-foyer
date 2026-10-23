@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Set;
 
 @Entity
@@ -28,10 +28,10 @@ public class Etudiant {
 
     long cinEtudiant;
 
-    Date dateNaissance;
+    LocalDate dateNaissance;
 
     @ToString.Exclude
     @ManyToMany(mappedBy = "etudiants")
-    Set<Reservation> reservations;
+    private Set<Reservation> reservations;
 
 }

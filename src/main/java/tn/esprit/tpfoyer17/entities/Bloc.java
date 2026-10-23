@@ -14,7 +14,7 @@ import java.util.Set;
 @Builder
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Bloc {
+public class Bloc{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

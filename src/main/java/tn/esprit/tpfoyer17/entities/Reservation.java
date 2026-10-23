@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Set;
 
 @Entity
@@ -17,11 +17,11 @@ import java.util.Set;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Reservation {
 
+    // Id métier (ex : "3-2026") : assigné par le service, donc pas de @GeneratedValue
     @Id
-  //  @GeneratedValue(strategy = GenerationType.SEQUENCE)
     String idReservation;
 
-    Date anneeUniversitaire;
+    LocalDate anneeUniversitaire;
 
     boolean estValide;
 

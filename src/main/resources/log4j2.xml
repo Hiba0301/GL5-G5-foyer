@@ -5,16 +5,16 @@
     </Properties>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"/>
         </Console>
-        <File name="File" fileName="logs/application.log">
-            <PatternLayout pattern="${LOG_PATTERN}"/>
+        <File name="FileLog" fileName="logs/tpfoyer17.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n"/>
         </File>
     </Appenders>
     <Loggers>
-        <Logger name="tn.esprit.tpfoyer17" level="debug" additivity="false">
+        <Logger name="tn.esprit.tpfoyer17.services" level="debug" additivity="false">
             <AppenderRef ref="Console"/>
-            <AppenderRef ref="File"/>
+            <AppenderRef ref="FileLog"/>
         </Logger>
         <Root level="info">
             <AppenderRef ref="Console"/>

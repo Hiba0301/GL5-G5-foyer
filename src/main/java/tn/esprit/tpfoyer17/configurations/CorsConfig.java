@@ -1,3 +1,4 @@
+
 package tn.esprit.tpfoyer17.configurations;
 
 import org.springframework.context.annotation.Configuration;
@@ -9,10 +10,13 @@ public class CorsConfig implements WebMvcConfigurer {
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("http://localhost:4200")
+        registry.addMapping("/api/**")
+                .allowedOrigins(
+                        "http://localhost:4200",
+                        "http://localhost:8090",
+                        "http://18.232.180.232:30080"
+                )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(true);
+                .allowedHeaders("*");
     }
 }

@@ -15,91 +15,141 @@ import tn.esprit.tpfoyer17.repositories.ChambreRepository;
 import tn.esprit.tpfoyer17.repositories.EtudiantRepository;
 import tn.esprit.tpfoyer17.repositories.ReservationRepository;
 
+import java.time.LocalDate;
 import java.time.Year;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.time.ZoneId;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ReservationService implements IReservationService{
+public class ReservationService implements IReservationService {
+
+    private static final ZoneId ZONE = ZoneId.of("Africa/Tunis");
+
     ReservationRepository reservationRepository;
     EtudiantRepository etudiantRepository;
     ChambreRepository chambreRepository;
     BlocRepository blocRepository;
 
-
-
     @Override
     public List<Reservation> getAllReservations() {
-        return (List<Reservation>) reservationRepository.findAll();
+        log.info("Récupération de toutes les réservations");
+        List<Reservation> reservations = (List<Reservation>) reservationRepository.findAll();
+        log.debug("Nombre de réservations récupérées : {}", reservations.size());
+        return reservations;
     }
 
     @Override
     public Reservation getReservationById(String idReservation) {
-        return reservationRepository.findById(idReservation).orElseThrow();
+        log.debug("Recherche de la réservation avec l'id {}", idReservation);
+        return reservationRepository.findById(idReservation).orElseThrow(() -> {
+            log.error("Réservation introuvable avec l'id {}", idReservation);
+            return new NoSuchElementException("Réservation introuvable avec l'id " + idReservation);
+        });
     }
 
     @Override
     public void deleteReservation(String idReservation) {
+        if (!reservationRepository.existsById(idReservation)) {
+            log.warn("Suppression demandée pour une réservation inexistante, id {}", idReservation);
+        }
         reservationRepository.deleteById(idReservation);
-
+        log.info("Suppression de la réservation avec l'id {}", idReservation);
     }
 
     @Override
     public Reservation updateReservation(Reservation reservation) {
+        log.info("Mise à jour de la réservation avec l'id {}", reservation.getIdReservation());
         return reservationRepository.save(reservation);
     }
 
     @Override
     public Reservation ajouterReservation(long idBloc, long cinEtudiant) {
-        Etudiant etudiant = etudiantRepository.findByCinEtudiant(cinEtudiant);
-        Reservation reservation = reservationRepository.findForReservation(idBloc);
+        log.info("Ajout d'un étudiant (cin {}) à une réservation du bloc {}", cinEtudiant, idBloc);
 
-        if (reservation != null) {
-            reservation.getEtudiants().add(etudiant);
-            Chambre chambre = chambreRepository.findByReservationsIdReservation(reservation.getIdReservation());
-            TypeChambre type = chambre.getTypeChambre();
-            if (type == TypeChambre.DOUBLE
-                    || (type == TypeChambre.TRIPLE && reservation.getEtudiants().size() == 3)) {
-                reservation.setEstValide(false);
+        Reservation existante = reservationRepository.findForReservation(idBloc);
+
+        if (existante != null) {
+            log.debug("Réservation existante trouvée pour le bloc {} : {}", idBloc, existante.getIdReservation());
+            existante.getEtudiants().add(etudiantRepository.findByCinEtudiant(cinEtudiant));
+            Chambre chambre = chambreRepository.findByReservationsIdReservation(existante.getIdReservation());
+            switch (chambre.getTypeChambre()) {
+                case TRIPLE:
+                    if (existante.getEtudiants().size() == 3) {
+                        existante.setEstValide(false);
+                        log.info("Réservation {} complète (chambre TRIPLE, 3 étudiants)", existante.getIdReservation());
+                    }
+                    break;
+                case DOUBLE:
+                    existante.setEstValide(false);
+                    log.info("Réservation {} complète (chambre DOUBLE)", existante.getIdReservation());
+                    break;
             }
-            return reservationRepository.save(reservation);
-        }
+            Reservation saved = reservationRepository.save(existante);
+            log.info("Étudiant (cin {}) ajouté à la réservation {}", cinEtudiant, saved.getIdReservation());
+            return saved;
+        } else {
+            log.debug("Aucune réservation existante pour le bloc {}, création d'une nouvelle réservation", idBloc);
+            List<Etudiant> etudiants = new ArrayList<Etudiant>();
+            etudiants.add(etudiantRepository.findByCinEtudiant(cinEtudiant));
+            Reservation reservation = Reservation.builder()
+                    .anneeUniversitaire(LocalDate.now(ZONE))
+                    .etudiants((Set<Etudiant>) etudiants)
+                    .build();
+            Chambre chambre = chambreRepository.getForReservation(idBloc);
+            Bloc bloc = blocRepository.findById(idBloc).orElseThrow(() -> {
+                log.error("Bloc introuvable avec l'id {}", idBloc);
+                return new NoSuchElementException("Bloc introuvable avec l'id " + idBloc);
+            });
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(new Date());
+            String idReservation = chambre.getIdChambre() + bloc.getNomBloc() + calendar.get(Calendar.YEAR);
+            reservation.setIdReservation(idReservation);
+            if (chambre.getTypeChambre().equals(TypeChambre.SIMPLE)) {
+                reservation.setEstValide(false);
+            } else {
+                reservation.setEstValide(true);
+            }
+            log.debug("Nouvelle réservation {} (chambre {}, valide : {})",
+                    idReservation, chambre.getTypeChambre(), reservation.isEstValide());
 
-        Set<Etudiant> etudiants = new HashSet<>();
-        etudiants.add(etudiant);
-        Chambre chambre = chambreRepository.getForReservation(idBloc);
-        Bloc bloc = blocRepository.findById(idBloc).orElseThrow();
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
-        Reservation nouvelle = Reservation.builder()
-                .idReservation(chambre.getIdChambre() + bloc.getNomBloc() + calendar.get(Calendar.YEAR))
-                .anneeUniversitaire(new Date())
-                .etudiants(etudiants)
-                .estValide(chambre.getTypeChambre() != TypeChambre.SIMPLE)
-                .build();
-        return reservationRepository.save(nouvelle);
+            Reservation saved = reservationRepository.save(reservation);
+            log.info("Nouvelle réservation {} créée pour l'étudiant (cin {})", saved.getIdReservation(), cinEtudiant);
+            return saved;
+        }
     }
 
     @Override
     public Reservation annulerReservation(long cinEtudiant) {
-        Reservation reservation = reservationRepository.findByEtudiantsCinEtudiantAndAnneeUniversitaire(cinEtudiant, Year.now().getValue());
+        log.info("Annulation de la réservation de l'étudiant (cin {})", cinEtudiant);
+        int annee = Year.now(ZONE).getValue();
+        log.debug("Recherche de la réservation de l'étudiant (cin {}) pour l'année {}", cinEtudiant, annee);
+
+        Reservation reservation = reservationRepository.findByEtudiantsCinEtudiantAndAnneeUniversitaire(cinEtudiant, annee);
+        if (reservation == null) {
+            log.warn("Aucune réservation trouvée pour l'étudiant (cin {}) en {}", cinEtudiant, annee);
+        }
+
         Etudiant etudiant = etudiantRepository.findByCinEtudiant(cinEtudiant);
         reservation.getEtudiants().remove(etudiant);
         reservation.setEstValide(true);
-        return reservationRepository.save(reservation);
+        Reservation saved = reservationRepository.save(reservation);
+        log.info("Étudiant (cin {}) retiré de la réservation {}", cinEtudiant, saved.getIdReservation());
+        return saved;
     }
 
     @Override
     public List<Reservation> getReservationParAnneeUniversitaireEtNomUniversite(Date anneeUniversite, String nomUniversite) {
+        log.info("Recherche des réservations pour l'université {} et la date {}", nomUniversite, anneeUniversite);
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(anneeUniversite);
-        return reservationRepository.findByAnneeUniversitaireYearAndNomUniversite(calendar.get(Calendar.YEAR), nomUniversite);
+        int annee = calendar.get(Calendar.YEAR);
+        log.debug("Année extraite : {}", annee);
 
+        List<Reservation> resultats = reservationRepository.findByAnneeUniversitaire_YearAndNomUnuiversite(annee, nomUniversite);
+        log.info("{} réservation(s) trouvée(s) pour l'université {}", resultats.size(), nomUniversite);
+        return resultats;
     }
 }

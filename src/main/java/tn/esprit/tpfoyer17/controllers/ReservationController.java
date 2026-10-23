@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import tn.esprit.tpfoyer17.dto.ReservationDTO;
 import tn.esprit.tpfoyer17.entities.Reservation;
 import tn.esprit.tpfoyer17.services.IReservationService;
 
@@ -36,8 +37,8 @@ public class ReservationController {
     }
 
     @PutMapping("update")
-    public Reservation updatingReservation(@RequestBody Reservation reservation){
-        return reservationService.updateReservation(reservation);
+    public Reservation updatingReservation(@RequestBody ReservationDTO reservationDTO){
+        return reservationService.updateReservation(reservationDTO.toEntity());
     }
 
     @PutMapping("ajouter-reservation")

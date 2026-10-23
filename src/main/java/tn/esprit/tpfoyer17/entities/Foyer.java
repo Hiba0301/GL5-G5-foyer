@@ -15,7 +15,7 @@ import java.util.Set;
 @Builder
 @ToString
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Foyer {
+public class Foyer  {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

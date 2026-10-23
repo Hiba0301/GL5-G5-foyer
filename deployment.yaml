@@ -54,3 +54,28 @@ spec:
               value: root
             - name: SPRING_DATASOURCE_PASSWORD
               value: ""
+
+
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foyer-front
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: foyer-front
+  template:
+    metadata:
+      labels:
+        app: foyer-front
+    spec:
+      containers:
+        - name: foyer-front
+          image: betchayma/foyer-front:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
