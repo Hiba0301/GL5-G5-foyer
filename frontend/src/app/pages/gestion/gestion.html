@@ -1,0 +1,56 @@
+<div class="page-header">
+  <h1>{{ titres[type] }}</h1>
+  <button class="btn btn-primary" (click)="commencer()">+ {{ type === 'reservations' ? 'Nouvelle réservation' : 'Ajouter' }}</button>
+</div>
+
+@if (erreur(); as e) { <div class="alert alert-error" role="alert">{{ e }} <button class="close" (click)="erreur.set(null)">×</button></div> }
+@if (succes(); as s) { <div class="alert alert-success" role="status">{{ s }} <button class="close" (click)="succes.set(null)">×</button></div> }
+
+@if (edition()) {
+  <section class="card gestion-form">
+    <h2>{{ type === 'reservations' ? 'Créer une réservation' : 'Informations' }}</h2>
+    @if (type === 'reservations') {
+      <label for="idChambre">Numéro de chambre</label><input id="idChambre" type="number" min="1" [(ngModel)]="form.idChambre">
+      <label for="cinEtudiant">CIN de l'étudiant</label><input id="cinEtudiant" type="number" min="1" [(ngModel)]="form.cinEtudiant">
+    } @else {
+      @for (champ of champs(); track champ) {
+        <label [for]="champ">{{ champ }}</label>
+        @if (champ === 'typeChambre') {
+          <select [id]="champ" [(ngModel)]="form[champ]"><option value="SIMPLE">SIMPLE</option><option value="DOUBLE">DOUBLE</option><option value="TRIPLE">TRIPLE</option></select>
+        } @else {
+          <input [id]="champ" [type]="champ === 'dateNaissance' ? 'date' : champ === 'capaciteBloc' || champ === 'numeroChambre' || champ === 'cinEtudiant' ? 'number' : 'text'" [(ngModel)]="form[champ]">
+        }
+      }
+    }
+    <div class="form-actions">
+      <button class="btn" (click)="edition.set(false)">Annuler</button>
+      <button class="btn btn-primary" (click)="type === 'reservations' ? ajouterReservation() : enregistrer()">Enregistrer</button>
+    </div>
+  </section>
+}
+
+@if (chargement()) { <p class="muted">Chargement…</p> }
+@else if (elements().length === 0) { <p class="muted">Aucun élément pour le moment.</p> }
+@else {
+  <table class="table">
+    <thead><tr>
+      @if (type === 'reservations') { <th>Identifiant</th><th>Année universitaire</th><th>Valide</th><th>Étudiants</th> }
+      @if (type === 'blocs') { <th>ID</th><th>Nom</th><th>Capacité</th><th>Foyer</th> }
+      @if (type === 'chambres') { <th>ID</th><th>Numéro</th><th>Type</th> }
+      @if (type === 'etudiants') { <th>ID</th><th>Nom</th><th>Prénom</th><th>CIN</th><th>Date de naissance</th> }
+      <th class="actions">Actions</th>
+    </tr></thead>
+    <tbody>@for (item of elements(); track item.idReservation ?? item.idBloc ?? item.idChambre ?? item.idEtudiant) {
+      <tr>
+        @if (type === 'reservations') { <td>{{ item.idReservation }}</td><td>{{ item.anneeUniversitaire }}</td><td><span class="badge">{{ item.estValide ? 'Oui' : 'Non' }}</span></td><td>{{ item.etudiants?.length ?? 0 }}</td> }
+        @if (type === 'blocs') { <td>{{ item.idBloc }}</td><td>{{ item.nomBloc }}</td><td>{{ item.capaciteBloc }}</td><td>{{ item.foyer?.nomFoyer ?? '—' }}</td> }
+        @if (type === 'chambres') { <td>{{ item.idChambre }}</td><td>{{ item.numeroChambre }}</td><td><span class="badge">{{ item.typeChambre }}</span></td> }
+        @if (type === 'etudiants') { <td>{{ item.idEtudiant }}</td><td>{{ item.nomEtudiant }}</td><td>{{ item.prenomEtudiant }}</td><td>{{ item.cinEtudiant }}</td><td>{{ item.dateNaissance }}</td> }
+        <td class="actions">
+          @if (type !== 'reservations') { <button class="btn btn-small" (click)="commencer(item)">Modifier</button> }
+          <button class="btn btn-small btn-danger" (click)="supprimer(item)">Supprimer</button>
+        </td>
+      </tr>
+    }</tbody>
+  </table>
+}

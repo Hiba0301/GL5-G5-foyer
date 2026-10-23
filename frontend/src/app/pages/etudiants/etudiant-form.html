@@ -1,0 +1,48 @@
+<div class="page-header">
+  <h1>{{ idEtudiant() === null ? 'Ajouter un étudiant' : 'Modifier l\'étudiant #' + idEtudiant() }}</h1>
+</div>
+
+@if (erreur(); as e) {
+  <div class="alert alert-error" role="alert">{{ e }}</div>
+}
+
+<form class="card form" [formGroup]="form" (ngSubmit)="enregistrer()" novalidate>
+  <label for="nomEtudiant">Nom *</label>
+  <input id="nomEtudiant" type="text" formControlName="nomEtudiant" [class.invalid]="champInvalide('nomEtudiant')" />
+  @if (champInvalide('nomEtudiant')) {
+    <small class="error-text">
+      @if (form.controls.nomEtudiant.hasError('required')) { Le nom est obligatoire. }
+      @else if (form.controls.nomEtudiant.hasError('minlength')) { Au moins 2 caractères. }
+      @else { 100 caractères maximum. }
+    </small>
+  }
+
+  <label for="prenomEtudiant">Prénom *</label>
+  <input id="prenomEtudiant" type="text" formControlName="prenomEtudiant" [class.invalid]="champInvalide('prenomEtudiant')" />
+  @if (champInvalide('prenomEtudiant')) {
+    <small class="error-text">
+      @if (form.controls.prenomEtudiant.hasError('required')) { Le prénom est obligatoire. }
+      @else if (form.controls.prenomEtudiant.hasError('minlength')) { Au moins 2 caractères. }
+      @else { 100 caractères maximum. }
+    </small>
+  }
+
+  <label for="cinEtudiant">CIN *</label>
+  <input id="cinEtudiant" type="number" min="1" formControlName="cinEtudiant" [class.invalid]="champInvalide('cinEtudiant')" />
+  @if (champInvalide('cinEtudiant')) {
+    <small class="error-text">
+      @if (form.controls.cinEtudiant.hasError('required')) { Le CIN est obligatoire. }
+      @else { Le CIN doit être un entier supérieur à 0. }
+    </small>
+  }
+
+  <label for="dateNaissance">Date de naissance</label>
+  <input id="dateNaissance" type="date" formControlName="dateNaissance" />
+
+  <div class="form-actions">
+    <a class="btn" routerLink="/etudiants">Annuler</a>
+    <button class="btn btn-primary" type="submit" [disabled]="envoi()">
+      {{ envoi() ? 'Enregistrement…' : 'Enregistrer' }}
+    </button>
+  </div>
+</form>
