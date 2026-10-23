@@ -1,3 +1,15 @@
+terraform {
+  required_version = ">= 1.10.5"
+
+  backend "s3" {
+    bucket       = "gl5-g5-foyer-tfstate-479685814246-us-east-1"
+    key          = "foyer/terraform.tfstate"
+    region       = "us-east-1"
+    encrypt      = true
+    use_lockfile = true
+  }
+}
+
 provider "aws" {
   region = var.aws_region
 }
@@ -50,6 +62,7 @@ resource "aws_eks_node_group" "my_node_group" {
   node_role_arn   = var.role_arn
   subnet_ids      = var.subnet_ids
   instance_types  = ["t3.medium"]
+  ami_type        = "BOTTLEROCKET_x86_64"
 
   scaling_config {
     desired_size = 2

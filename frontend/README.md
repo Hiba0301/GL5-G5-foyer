@@ -1,59 +1,87 @@
-# Frontend
+# Frontend tpFoyer — Module Bloc
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.2.3.
+Application Angular standalone récupérée depuis `feature/gestion-reservation`
+et complétée avec une page de gestion des blocs. Les pages existantes des
+foyers, universités et réservations restent en place.
 
-## Development server
+## Prérequis
 
-To start a local development server, run:
+- Node.js `22.22.3` ou plus récent sur la branche Node 22, compatible avec Angular 22.
+- npm.
+- MySQL local démarré.
+- API Spring Boot démarrée sur `http://localhost:8082/tpFoyer17`.
 
-```bash
-ng serve
+Vérifier les versions dans un terminal Windows :
+
+```cmd
+node --version
+npm --version
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Installer et lancer le projet
 
-## Code scaffolding
+Depuis `frontend/` :
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
+```cmd
+npm install
+npm start
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Ouvrir `http://localhost:4200`. En développement, `proxy.conf.json` transmet
+les appels `/tpFoyer17/**` à `http://localhost:8082`; les appels passent donc
+par le même serveur d'origine que l'interface, sans configuration CORS locale.
 
-```bash
-ng generate --help
+Démarrer le backend avec MySQL déjà lancé, depuis la racine du dépôt :
+
+```cmd
+mvnw.cmd spring-boot:run
 ```
 
-## Building
+## Tests et build Angular
 
-To build the project run:
-
-```bash
-ng build
+```cmd
+npm test -- --watch=false
+npm run build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+## Image Docker
 
-## Running unit tests
+Depuis la racine du dépôt, en utilisant le Dockerfile de `frontend/` :
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
+```cmd
+docker build -t tpfoyer-frontend -f frontend/Dockerfile frontend
+docker run --rm -p 8080:80 --add-host=foyer-app-service:host-gateway tpfoyer-frontend
 ```
 
-## Running end-to-end tests
+L'image utilise le Dockerfile multi-étapes et Nginx de ce dossier. Pour la
+production, Nginx sert Angular et transmet `/tpFoyer17/` au service backend
+Kubernetes `foyer-app-service:8082`, comme défini dans `service.yaml`. Comme
+l'API et l'interface sont alors servies sous
+la même origine, CORS n'est pas nécessaire dans cette architecture. Si le
+frontend est déployé sur une origine différente, une configuration CORS Spring
+minimale sera nécessaire ; elle n'est pas ajoutée sans accord préalable.
 
-For end-to-end (e2e) testing, run:
+En local, `--add-host` permet à Nginx de résoudre `foyer-app-service` vers la
+machine hôte ; le backend doit alors écouter sur le port `8082`. Dans
+Kubernetes, le service est résolu par le DNS du cluster.
 
-```bash
-ng e2e
-```
+## Routes de l'API Bloc utilisées
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+Préfixe observé dans `BlocController` et `application.properties` :
+`/tpFoyer17/api/blocs`.
 
-## Additional Resources
+| Fonctionnalité | Méthode | Route |
+| --- | --- | --- |
+| Lister | GET | `/getAll` |
+| Ajouter | POST | `/add` |
+| Lire un bloc | GET | `/get?idBloc={idBloc}` (route existante, non nécessaire à l'écran de liste) |
+| Modifier | PUT | `/update` |
+| Supprimer | DELETE | `/delete/{idBloc}` |
+| Affecter des chambres | PUT | `/affecter-chambre-bloc?idBloc={idBloc}` |
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Les requêtes d'ajout envoient uniquement `nomBloc` et `capaciteBloc`; les
+modifications envoient aussi `idBloc`. Aucun objet `foyer` fictif n'est envoyé.
+Pour l'affectation, l'API existante reçoit un tableau d'identifiants de chambres
+dans le corps et l'identifiant du bloc dans le paramètre `idBloc`. Les
+identifiants sont saisis dans le formulaire, sans inventer d'endpoint de liste
+des chambres pour le module Bloc.

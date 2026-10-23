@@ -21,6 +21,13 @@ describe('App', () => {
     const links = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('nav a')).map((a) =>
       a.textContent?.trim(),
     );
-    expect(links).toEqual(['Foyers', 'Universités']);
+    expect(links).toEqual([
+      'Foyers',
+      'Universités',
+      'Réservations',
+      'Blocs',
+      'Chambres',
+      'Étudiants',
+    ]);
   });
 });

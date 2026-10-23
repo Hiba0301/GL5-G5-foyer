@@ -148,7 +148,7 @@ public class ReservationService implements IReservationService {
         int annee = calendar.get(Calendar.YEAR);
         log.debug("Année extraite : {}", annee);
 
-        List<Reservation> resultats = reservationRepository.findByAnneeUniversitaire_YearAndNomUnuiversite(annee, nomUniversite);
+        List<Reservation> resultats = reservationRepository.findByAnneeUniversitaireYearAndNomUniversite(annee, nomUniversite);
         log.info("{} réservation(s) trouvée(s) pour l'université {}", resultats.size(), nomUniversite);
         return resultats;
     }
