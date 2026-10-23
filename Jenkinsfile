@@ -114,6 +114,10 @@ pipeline {
                           -e SPRING_DATASOURCE_USERNAME=root \
                           -e SPRING_DATASOURCE_PASSWORD= \
                           $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER
+
+                          docker rm -f foyer-front || true
+                          docker run -d --name foyer-front --network devops -p 8090:80 \
+                          $DOCKERHUB_USER/foyer-front:$BUILD_NUMBER
                     '''
                 }
             }
