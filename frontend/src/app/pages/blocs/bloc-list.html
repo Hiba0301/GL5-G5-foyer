@@ -1,0 +1,123 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">RÉSIDENCE · ORGANISATION</p>
+    <h1>Gestion des blocs</h1>
+    <p class="page-intro">Consultez et gérez les blocs de votre foyer.</p>
+  </div>
+  <div class="count-card">
+    <span class="count-value">{{ blocs().length }}</span>
+    <span class="count-label">bloc{{ blocs().length === 1 ? '' : 's' }}</span>
+  </div>
+</section>
+
+@if (erreur(); as message) {
+  <div class="notice notice-error" role="alert">{{ message }}</div>
+}
+@if (succes(); as message) {
+  <div class="notice notice-success" role="status">{{ message }}</div>
+}
+
+<section class="card bloc-form-card" aria-labelledby="bloc-form-title">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">{{ idEdition() === null ? 'NOUVELLE ENTRÉE' : 'MISE À JOUR' }}</p>
+      <h2 id="bloc-form-title">{{ idEdition() === null ? 'Ajouter un bloc' : 'Modifier le bloc' }}</h2>
+    </div>
+    <a class="btn" routerLink="/blocs/affectation">Affecter des chambres</a>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="enregistrer()" novalidate>
+    <div class="bloc-fields">
+      <label class="field">
+        <span>Nom du bloc</span>
+        <input
+          formControlName="nomBloc"
+          type="text"
+          maxlength="100"
+          placeholder="Ex. Les Jasmins"
+          [attr.aria-invalid]="form.controls.nomBloc.touched && form.controls.nomBloc.invalid"
+        />
+        @if (form.controls.nomBloc.touched && form.controls.nomBloc.hasError('required')) {
+          <small class="field-error">Le nom du bloc est obligatoire.</small>
+        } @else if (form.controls.nomBloc.touched && form.controls.nomBloc.hasError('pattern')) {
+          <small class="field-error">Le nom ne peut pas être composé uniquement d'espaces.</small>
+        } @else if (form.controls.nomBloc.touched && form.controls.nomBloc.hasError('maxlength')) {
+          <small class="field-error">Le nom ne peut pas dépasser 100 caractères.</small>
+        }
+      </label>
+
+      <label class="field">
+        <span>Capacité</span>
+        <input
+          formControlName="capaciteBloc"
+          type="number"
+          min="1"
+          step="1"
+          placeholder="Ex. 24"
+          [attr.aria-invalid]="form.controls.capaciteBloc.touched && form.controls.capaciteBloc.invalid"
+        />
+        @if (form.controls.capaciteBloc.touched && form.controls.capaciteBloc.hasError('required')) {
+          <small class="field-error">La capacité est obligatoire.</small>
+        } @else if (form.controls.capaciteBloc.touched && form.controls.capaciteBloc.hasError('min')) {
+          <small class="field-error">La capacité doit être supérieure à zéro.</small>
+        } @else if (form.controls.capaciteBloc.touched && form.controls.capaciteBloc.hasError('pattern')) {
+          <small class="field-error">La capacité doit être un nombre entier positif.</small>
+        }
+      </label>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit" [disabled]="enregistrement()">
+          {{ enregistrement() ? 'Enregistrement…' : idEdition() === null ? 'Ajouter le bloc' : 'Enregistrer' }}
+        </button>
+        @if (idEdition() !== null) {
+          <button class="btn" type="button" (click)="annulerEdition()">Annuler</button>
+        }
+      </div>
+    </div>
+  </form>
+</section>
+
+<section class="card bloc-list-card" aria-labelledby="bloc-list-title">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">VUE D'ENSEMBLE</p>
+      <h2 id="bloc-list-title">Tous les blocs</h2>
+    </div>
+    <button class="btn" type="button" (click)="charger()" [disabled]="chargement()">Actualiser</button>
+  </div>
+
+  @if (chargement()) {
+    <p class="empty-state" role="status">Chargement des blocs…</p>
+  } @else if (blocs().length === 0) {
+    <div class="empty-state">
+      <strong>Aucun bloc pour le moment</strong>
+      <span>Ajoutez un bloc pour le voir apparaître ici.</span>
+    </div>
+  } @else {
+    <div class="table-scroll">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Nom</th>
+            <th scope="col">Capacité</th>
+            <th scope="col" class="actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (bloc of blocs(); track bloc.idBloc) {
+            <tr>
+              <td>{{ bloc.idBloc }}</td>
+              <td class="bloc-name">{{ bloc.nomBloc }}</td>
+              <td><span class="capacity-badge">{{ bloc.capaciteBloc }} places</span></td>
+              <td class="actions">
+                <button class="btn btn-small" type="button" (click)="commencerEdition(bloc)">Modifier</button>
+                <button class="btn btn-small btn-danger" type="button" (click)="supprimer(bloc)">Supprimer</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

@@ -1,0 +1,64 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">ORGANISATION · CHAMBRES</p>
+    <h1>Affecter des chambres</h1>
+    <p class="page-intro">Associez une ou plusieurs chambres à un bloc existant.</p>
+  </div>
+  <a class="btn" routerLink="/blocs">Retour aux blocs</a>
+</section>
+
+@if (erreur(); as message) {
+  <div class="notice notice-error" role="alert">{{ message }}</div>
+}
+@if (succes(); as message) {
+  <div class="notice notice-success" role="status">{{ message }}</div>
+}
+
+<section class="card assignment-card">
+  <p class="eyebrow">NOUVELLE AFFECTATION</p>
+  <h2>Choisir un bloc et ses chambres</h2>
+
+  @if (chargement()) {
+    <p class="muted" role="status">Chargement des blocs…</p>
+  } @else if (blocs().length === 0) {
+    <p class="muted">Ajoutez d’abord un bloc avant d’affecter des chambres.</p>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="affecter()" novalidate>
+      <label class="field">
+        <span>Bloc de destination</span>
+        <select formControlName="idBloc">
+          <option [ngValue]="0" disabled>Choisir un bloc</option>
+          @for (bloc of blocs(); track bloc.idBloc) {
+            <option [ngValue]="bloc.idBloc">{{ bloc.nomBloc }} · capacité {{ bloc.capaciteBloc }}</option>
+          }
+        </select>
+        @if (form.controls.idBloc.touched && form.controls.idBloc.invalid) {
+          <small class="field-error">Sélectionnez un bloc.</small>
+        }
+      </label>
+
+      <label class="field">
+        <span>Identifiants des chambres</span>
+        <input
+          formControlName="chambres"
+          type="text"
+          inputmode="numeric"
+          placeholder="Ex. 101, 102, 103"
+          aria-describedby="chambres-aide"
+        />
+        <small id="chambres-aide" class="field-help">
+          Saisissez les identifiants connus, séparés par des virgules.
+        </small>
+        @if (form.controls.chambres.touched && form.controls.chambres.hasError('required')) {
+          <small class="field-error">Saisissez au moins un identifiant.</small>
+        }
+      </label>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit" [disabled]="enregistrement()">
+          {{ enregistrement() ? 'Affectation…' : 'Affecter les chambres' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>
