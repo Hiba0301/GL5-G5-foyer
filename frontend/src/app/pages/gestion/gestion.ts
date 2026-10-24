@@ -70,8 +70,15 @@ export class Gestion implements OnInit {
   }
 
   protected ajouterReservation(): void {
-    const params = { idChambre: Number(this.form.idChambre), cinEtudiant: Number(this.form.cinEtudiant) };
-    this.http.put(`${this.api}/api/reservations/ajouter-reservation`, null, { params: params as any }).subscribe({
+    const numeroChambre = Number(this.form.idChambre);
+    const cinEtudiant = Number(this.form.cinEtudiant);
+    if (!numeroChambre || !cinEtudiant) {
+      this.erreur.set('Saisissez le numéro de chambre et le CIN de l’étudiant.');
+      return;
+    }
+    this.http.put(`${this.api}/api/reservations/ajouter-reservation`, null, {
+      params: { numeroChambre: String(numeroChambre), cinEtudiant: String(cinEtudiant) },
+    }).subscribe({
       next: () => { this.edition.set(false); this.succes.set('Réservation créée.'); this.charger(); },
       error: (err) => this.erreur.set(messageErreur(err, 'Création de la réservation')),
     });

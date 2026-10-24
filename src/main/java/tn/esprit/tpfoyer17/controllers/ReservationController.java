@@ -42,8 +42,9 @@ public class ReservationController {
     }
 
     @PutMapping("ajouter-reservation")
-    public Reservation ajouterReservation (@RequestParam("idChambre") long idChambre, @RequestParam("cinEtudiant") long cinEtudiant){
-        return reservationService.ajouterReservation(idChambre,cinEtudiant);
+    public Reservation ajouterReservation(@RequestParam("numeroChambre") long numeroChambre,
+                                          @RequestParam("cinEtudiant") long cinEtudiant) {
+        return reservationService.ajouterReservation(numeroChambre, cinEtudiant);
     }
     @PutMapping("annuler-reservation")
     public Reservation annulerReservation (@RequestParam("cinEtudiant") long cinEtudiant){

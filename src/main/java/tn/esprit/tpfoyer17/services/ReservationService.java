@@ -65,16 +65,30 @@ public class ReservationService implements IReservationService {
         return reservationRepository.save(reservation);
     }
     @Override
-    public Reservation ajouterReservation(long idBloc, long cinEtudiant) {
-        log.info("Ajout d'un étudiant (cin {}) à une réservation du bloc {}", cinEtudiant, idBloc);
+    public Reservation ajouterReservation(long numeroChambre, long cinEtudiant) {
+        log.info("Ajout de l'étudiant (cin {}) à la chambre numéro {}", cinEtudiant, numeroChambre);
+
+        Chambre chambre = chambreRepository.findFirstByNumeroChambre(numeroChambre).orElseThrow(() -> {
+            log.error("Chambre introuvable avec le numéro {}", numeroChambre);
+            return new NoSuchElementException("Chambre introuvable avec le numéro " + numeroChambre);
+        });
+
+        Etudiant etudiant = etudiantRepository.findByCinEtudiant(cinEtudiant);
+        if (etudiant == null) {
+            log.error("Aucun étudiant avec le cin {}", cinEtudiant);
+            throw new NoSuchElementException("Aucun étudiant avec le cin " + cinEtudiant);
+        }
+
+        Bloc bloc = chambre.getBloc();
+        long idBloc = bloc.getIdBloc();
 
         Reservation existante = reservationRepository.findForReservation(idBloc);
 
         if (existante != null) {
             log.debug("Réservation existante trouvée pour le bloc {} : {}", idBloc, existante.getIdReservation());
-            existante.getEtudiants().add(etudiantRepository.findByCinEtudiant(cinEtudiant));
-            Chambre chambre = chambreRepository.findByReservationsIdReservation(existante.getIdReservation());
-            switch (chambre.getTypeChambre()) {
+            existante.getEtudiants().add(etudiant);
+            Chambre chambreReservee = chambreRepository.findByReservationsIdReservation(existante.getIdReservation());
+            switch (chambreReservee.getTypeChambre()) {
                 case TRIPLE:
                     if (existante.getEtudiants().size() == 3) {
                         existante.setEstValide(false);
@@ -94,7 +108,6 @@ public class ReservationService implements IReservationService {
         }
 
         log.debug("Aucune réservation existante pour le bloc {}, création d'une nouvelle réservation", idBloc);
-        Etudiant etudiant = etudiantRepository.findByCinEtudiant(cinEtudiant);
         Set<Etudiant> etudiants = new HashSet<>();
         etudiants.add(etudiant);
 
@@ -103,11 +116,6 @@ public class ReservationService implements IReservationService {
                 .etudiants(etudiants)
                 .build();
 
-        Chambre chambre = chambreRepository.getForReservation(idBloc);
-        Bloc bloc = blocRepository.findById(idBloc).orElseThrow(() -> {
-            log.error("Bloc introuvable avec l'id {}", idBloc);
-            return new NoSuchElementException("Bloc introuvable avec l'id " + idBloc);
-        });
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
         String idReservation = chambre.getIdChambre() + bloc.getNomBloc() + calendar.get(Calendar.YEAR);

@@ -5,6 +5,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 import tn.esprit.tpfoyer17.entities.Chambre;
 import tn.esprit.tpfoyer17.entities.enumerations.TypeChambre;
+import java.util.Optional;
 
 import java.util.List;
 
@@ -23,4 +24,6 @@ public interface ChambreRepository extends CrudRepository<Chambre,Long> {
 
     @Query("select c from Chambre c join Reservation r on r member of c.reservations where r.idReservation not like cast(year(current_date) as string)")
     List<Chambre> getChambresNonReserve();
+
+    Optional<Chambre> findFirstByNumeroChambre(long numeroChambre);
 }

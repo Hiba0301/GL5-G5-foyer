@@ -107,6 +107,9 @@ class ReservationServiceTest {
                 .etudiants(new HashSet<>(Set.of(dejaInscrit1, dejaInscrit2)))
                 .build();
         Chambre chambre = Chambre.builder().idChambre(7L).typeChambre(TypeChambre.TRIPLE).build();
+        Bloc blocTest = Bloc.builder().idBloc(1L).build();
+        Chambre chambreNumero1 = Chambre.builder().idChambre(1L).numeroChambre(1L).bloc(blocTest).build();
+        when(chambreRepository.findFirstByNumeroChambre(1L)).thenReturn(Optional.of(chambreNumero1));
 
         when(reservationRepository.findForReservation(1L)).thenReturn(reservation);
         when(chambreRepository.findByReservationsIdReservation("7")).thenReturn(chambre);
@@ -129,7 +132,9 @@ class ReservationServiceTest {
                 .etudiants(new HashSet<>(Set.of(dejaInscrit)))
                 .build();
         Chambre chambre = Chambre.builder().idChambre(8L).typeChambre(TypeChambre.DOUBLE).build();
-
+        Bloc blocTest = Bloc.builder().idBloc(1L).build();
+        Chambre chambreNumero1 = Chambre.builder().idChambre(1L).numeroChambre(1L).bloc(blocTest).build();
+        when(chambreRepository.findFirstByNumeroChambre(1L)).thenReturn(Optional.of(chambreNumero1));
         when(reservationRepository.findForReservation(1L)).thenReturn(reservation);
         when(chambreRepository.findByReservationsIdReservation("8")).thenReturn(chambre);
         when(etudiantRepository.findByCinEtudiant(2L)).thenReturn(nouveau);
@@ -223,7 +228,7 @@ class ReservationServiceIntegrationTest {
         Etudiant second = creerEtudiant();
         creerReservation(chambre, true, premier);
 
-        Reservation resultat = reservationService.ajouterReservation(bloc.getIdBloc(), second.getCinEtudiant());
+        Reservation resultat = reservationService.ajouterReservation(chambre.getNumeroChambre(), second.getCinEtudiant());
 
         assertEquals(2, resultat.getEtudiants().size());
         assertFalse(resultat.isEstValide(), "la chambre DOUBLE est complète avec 2 étudiants");
