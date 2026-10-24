@@ -69,20 +69,20 @@ class ControllersUnitTest {
     void blocAddConvertsDtoBeforeCallingService() {
         when(blocService.addBloc(any(Bloc.class))).thenAnswer(i -> i.getArgument(0));
 
-        Bloc result = blocController.addingBloc(new BlocDTO(1L, "Bloc A", 30L, null));
+        BlocDTO result = blocController.addingBloc(new BlocDTO(1L, "Bloc A", 30L, null));
 
-        assertEquals("Bloc A", result.getNomBloc());
-        assertEquals(30L, result.getCapaciteBloc());
+        assertEquals("Bloc A", result.nomBloc());
+        assertEquals(30L, result.capaciteBloc());
     }
 
     @Test
     void blocUpdateConvertsDtoBeforeCallingService() {
         when(blocService.updateBloc(any(Bloc.class))).thenAnswer(i -> i.getArgument(0));
 
-        Bloc result = blocController.updatingBloc(new BlocDTO(1L, "Bloc A", 30L, new FoyerDTO(9L, "F", 1L)));
+        BlocDTO result = blocController.updatingBloc(new BlocDTO(1L, "Bloc A", 30L, new FoyerDTO(9L, "F", 1L)));
 
-        assertEquals(1L, result.getIdBloc());
-        assertEquals(9L, result.getFoyer().getIdFoyer());
+        assertEquals(1L, result.idBloc());
+        assertEquals(9L, result.foyer().idFoyer());
     }
 
     @Test

@@ -1,0 +1,38 @@
+<div class="page-header">
+  <h1>{{ idChambre() === null ? 'Ajouter une chambre' : 'Modifier la chambre #' + idChambre() }}</h1>
+</div>
+
+@if (erreur(); as e) {
+  <div class="alert alert-error" role="alert">{{ e }}</div>
+}
+@if (succes(); as s) {
+  <div class="alert alert-success" role="status">{{ s }}</div>
+}
+
+<form class="card form" [formGroup]="form" (ngSubmit)="enregistrer()" novalidate>
+  <label for="numeroChambre">Numéro de chambre *</label>
+  <input id="numeroChambre" type="number" min="1" formControlName="numeroChambre"
+         [class.invalid]="champInvalide('numeroChambre')" />
+  @if (champInvalide('numeroChambre')) {
+    <small class="error-text">
+      Le numéro est obligatoire et doit être un entier supérieur ou égal à 1.
+    </small>
+  }
+
+  <label for="typeChambre">Type *</label>
+  <select id="typeChambre" formControlName="typeChambre" [class.invalid]="champInvalide('typeChambre')">
+    @for (type of types; track type) {
+      <option [value]="type">{{ type }}</option>
+    }
+  </select>
+  @if (champInvalide('typeChambre')) {
+    <small class="error-text">Le type est obligatoire.</small>
+  }
+
+  <div class="form-actions">
+    <a class="btn" routerLink="/chambres">Annuler</a>
+    <button class="btn btn-primary" type="submit" [disabled]="envoi()">
+      {{ envoi() ? 'Enregistrement…' : 'Enregistrer' }}
+    </button>
+  </div>
+</form>

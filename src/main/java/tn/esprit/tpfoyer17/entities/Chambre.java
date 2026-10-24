@@ -6,7 +6,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import tn.esprit.tpfoyer17.entities.enumerations.TypeChambre;
 
-import java.io.Serializable;
 import java.util.Set;
 
 @Entity
@@ -37,5 +36,6 @@ public class Chambre  {
     @JsonIgnore
     @ToString.Exclude
     @OneToMany
+    @JoinColumn(name = "chambre_id")
     Set<Reservation> reservations;
 }

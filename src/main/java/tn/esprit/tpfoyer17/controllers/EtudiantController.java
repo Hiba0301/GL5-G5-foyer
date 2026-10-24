@@ -1,25 +1,34 @@
 package tn.esprit.tpfoyer17.controllers;
 
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import tn.esprit.tpfoyer17.dto.EtudiantDTO;
 import tn.esprit.tpfoyer17.entities.Etudiant;
+import tn.esprit.tpfoyer17.repositories.EtudiantRepository;
 import tn.esprit.tpfoyer17.services.IEtudiantService;
 
 import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
-@AllArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RequestMapping("api/etudiants")
 public class EtudiantController {
     IEtudiantService etudiantService;
+
+    @Autowired
+    public EtudiantController(IEtudiantService etudiantService) {
+        this.etudiantService = etudiantService;
+    }
+
+    public EtudiantController(IEtudiantService etudiantService, EtudiantRepository ignoredRepository) {
+        this(etudiantService);
+    }
 
     @PostMapping("add")
     public Etudiant addEtudiant(@Valid @RequestBody EtudiantDTO etudiantDTO){
