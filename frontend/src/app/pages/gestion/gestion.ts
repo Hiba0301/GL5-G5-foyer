@@ -35,7 +35,7 @@ export class Gestion implements OnInit {
     const segment = this.route.snapshot.routeConfig?.path as TypePage;
     this.type = segment in this.bases ? segment : 'reservations';
     this.charger();
-    if (this.type === 'reservations') this.chargerBlocs();
+    if (this.type === 'reservations' || this.type === 'chambres') this.chargerBlocs();
   }
 
   protected charger(): void {
@@ -73,21 +73,29 @@ export class Gestion implements OnInit {
 
   protected commencer(item?: any): void {
     Object.keys(this.form).forEach((key) => delete this.form[key]);
-    if (item) Object.assign(this.form, item, { dateNaissance: item.dateNaissance ?? '' });
-    else if (this.type === 'chambres') this.form.typeChambre = 'SIMPLE';
+    if (item) {
+      Object.assign(this.form, item, { dateNaissance: item.dateNaissance ?? '' });
+      if (this.type === 'chambres') this.form.idBloc = item.bloc?.idBloc;
+    } else if (this.type === 'chambres') {
+      this.form.typeChambre = 'SIMPLE';
+    }
     this.chambresDuBloc.set([]);
     this.edition.set(true);
     this.erreur.set(null);
   }
 
   protected enregistrer(): void {
+    if (this.type === 'chambres' && !this.form.idBloc) {
+      this.erreur.set('Choisissez le bloc de la chambre.');
+      return;
+    }
     const edit = this.type === 'blocs' ? this.form.idBloc != null : this.type === 'chambres' ? this.form.idChambre != null : this.form.idEtudiant != null;
     const dto = this.type === 'blocs' ? { idBloc: this.form.idBloc ?? 0, nomBloc: this.form.nomBloc, capaciteBloc: Number(this.form.capaciteBloc), foyer: this.form.foyer ?? null }
-      : this.type === 'chambres' ? { idChambre: this.form.idChambre ?? 0, numeroChambre: Number(this.form.numeroChambre), typeChambre: this.form.typeChambre }
+      : this.type === 'chambres' ? { idChambre: this.form.idChambre ?? 0, numeroChambre: Number(this.form.numeroChambre), typeChambre: this.form.typeChambre, bloc: { idBloc: Number(this.form.idBloc) } }
         : { idEtudiant: this.form.idEtudiant ?? 0, nomEtudiant: this.form.nomEtudiant, prenomEtudiant: this.form.prenomEtudiant, cinEtudiant: Number(this.form.cinEtudiant), dateNaissance: this.form.dateNaissance };
     this.http.request('' + (edit ? 'PUT' : 'POST'), `${this.api}${this.bases[this.type]}/${edit ? 'update' : 'add'}`, { body: dto }).subscribe({
       next: () => { this.edition.set(false); this.succes.set('Enregistrement effectué.'); this.charger(); },
-      error: (err) => this.erreur.set(messageErreur(err, "Enregistrement")),
+      error: (err) => this.erreur.set(messageErreur(err, 'Enregistrement')),
     });
   }
 

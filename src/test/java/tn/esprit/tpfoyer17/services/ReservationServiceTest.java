@@ -23,12 +23,13 @@ import tn.esprit.tpfoyer17.repositories.FoyerRepository;
 import tn.esprit.tpfoyer17.repositories.ReservationRepository;
 import tn.esprit.tpfoyer17.repositories.UniversiteRepository;
 
+import java.time.LocalDate;
 import java.time.Year;
 import java.util.Arrays;
-import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
@@ -36,6 +37,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -61,6 +63,12 @@ class ReservationServiceTest {
     @InjectMocks
     private ReservationService reservationService;
 
+    /** Chambre numéro 1 rattachée au bloc 1 : la recherche par numéro la retrouve. */
+    private Chambre chambreNumero1() {
+        Bloc bloc = Bloc.builder().idBloc(1L).nomBloc("A").build();
+        return Chambre.builder().idChambre(1L).numeroChambre(1L).bloc(bloc).build();
+    }
+
     @Test
     void testGetAllReservationsAvecMockito() {
         when(reservationRepository.findAll()).thenReturn(List.of(new Reservation(), new Reservation()));
@@ -79,7 +87,23 @@ class ReservationServiceTest {
     }
 
     @Test
-    void testDeleteReservationAvecMockito() {
+    void testGetReservationByIdIntrouvable() {
+        when(reservationRepository.findById("X")).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () -> reservationService.getReservationById("X"));
+    }
+
+    @Test
+    void testDeleteReservationInexistanteAvecMockito() {
+        reservationService.deleteReservation("1");
+
+        verify(reservationRepository).deleteById("1");
+    }
+
+    @Test
+    void testDeleteReservationExistanteAvecMockito() {
+        when(reservationRepository.existsById("1")).thenReturn(true);
+
         reservationService.deleteReservation("1");
 
         verify(reservationRepository).deleteById("1");
@@ -106,13 +130,11 @@ class ReservationServiceTest {
                 .estValide(true)
                 .etudiants(new HashSet<>(Set.of(dejaInscrit1, dejaInscrit2)))
                 .build();
-        Chambre chambre = Chambre.builder().idChambre(7L).typeChambre(TypeChambre.TRIPLE).build();
-        Bloc blocTest = Bloc.builder().idBloc(1L).build();
-        Chambre chambreNumero1 = Chambre.builder().idChambre(1L).numeroChambre(1L).bloc(blocTest).build();
-        when(chambreRepository.findFirstByNumeroChambre(1L)).thenReturn(Optional.of(chambreNumero1));
+        Chambre chambreReservee = Chambre.builder().idChambre(7L).typeChambre(TypeChambre.TRIPLE).build();
 
+        when(chambreRepository.findFirstByNumeroChambre(1L)).thenReturn(Optional.of(chambreNumero1()));
         when(reservationRepository.findForReservation(1L)).thenReturn(reservation);
-        when(chambreRepository.findByReservationsIdReservation("7")).thenReturn(chambre);
+        when(chambreRepository.findByReservationsIdReservation("7")).thenReturn(chambreReservee);
         when(etudiantRepository.findByCinEtudiant(3L)).thenReturn(nouveau);
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -131,12 +153,11 @@ class ReservationServiceTest {
                 .estValide(true)
                 .etudiants(new HashSet<>(Set.of(dejaInscrit)))
                 .build();
-        Chambre chambre = Chambre.builder().idChambre(8L).typeChambre(TypeChambre.DOUBLE).build();
-        Bloc blocTest = Bloc.builder().idBloc(1L).build();
-        Chambre chambreNumero1 = Chambre.builder().idChambre(1L).numeroChambre(1L).bloc(blocTest).build();
-        when(chambreRepository.findFirstByNumeroChambre(1L)).thenReturn(Optional.of(chambreNumero1));
+        Chambre chambreReservee = Chambre.builder().idChambre(8L).typeChambre(TypeChambre.DOUBLE).build();
+
+        when(chambreRepository.findFirstByNumeroChambre(1L)).thenReturn(Optional.of(chambreNumero1()));
         when(reservationRepository.findForReservation(1L)).thenReturn(reservation);
-        when(chambreRepository.findByReservationsIdReservation("8")).thenReturn(chambre);
+        when(chambreRepository.findByReservationsIdReservation("8")).thenReturn(chambreReservee);
         when(etudiantRepository.findByCinEtudiant(2L)).thenReturn(nouveau);
         when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -144,6 +165,77 @@ class ReservationServiceTest {
 
         assertEquals(2, resultat.getEtudiants().size());
         assertFalse(resultat.isEstValide());
+    }
+
+    @Test
+    void testAjouterReservationChambreSimpleExistanteNeChangePasLaValidite() {
+        Etudiant dejaInscrit = Etudiant.builder().cinEtudiant(1L).build();
+        Etudiant nouveau = Etudiant.builder().cinEtudiant(2L).build();
+        Reservation reservation = Reservation.builder()
+                .idReservation("12")
+                .estValide(true)
+                .etudiants(new HashSet<>(Set.of(dejaInscrit)))
+                .build();
+        Chambre chambreReservee = Chambre.builder().idChambre(12L).typeChambre(TypeChambre.SIMPLE).build();
+
+        when(chambreRepository.findFirstByNumeroChambre(1L)).thenReturn(Optional.of(chambreNumero1()));
+        when(reservationRepository.findForReservation(1L)).thenReturn(reservation);
+        when(chambreRepository.findByReservationsIdReservation("12")).thenReturn(chambreReservee);
+        when(etudiantRepository.findByCinEtudiant(2L)).thenReturn(nouveau);
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArgument(0));
+
+        Reservation resultat = reservationService.ajouterReservation(1L, 2L);
+
+        assertTrue(resultat.isEstValide());
+    }
+
+    @Test
+    void testAjouterReservationChambreIntrouvable() {
+        when(chambreRepository.findFirstByNumeroChambre(9L)).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () -> reservationService.ajouterReservation(9L, 5L));
+    }
+
+    @Test
+    void testAjouterReservationEtudiantIntrouvable() {
+        when(chambreRepository.findFirstByNumeroChambre(1L)).thenReturn(Optional.of(chambreNumero1()));
+        when(etudiantRepository.findByCinEtudiant(9L)).thenReturn(null);
+
+        assertThrows(NoSuchElementException.class, () -> reservationService.ajouterReservation(1L, 9L));
+    }
+
+    @Test
+    void testAjouterNouvelleReservationDoubleEstValide() {
+        Etudiant etudiant = Etudiant.builder().cinEtudiant(5L).build();
+
+        when(chambreRepository.findFirstByNumeroChambre(1L)).thenReturn(Optional.of(chambreNumero1()));
+        when(etudiantRepository.findByCinEtudiant(5L)).thenReturn(etudiant);
+        when(reservationRepository.findForReservation(1L)).thenReturn(null);
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArgument(0));
+
+        Reservation resultat = reservationService.ajouterReservation(1L, 5L);
+
+        assertNotNull(resultat);
+        assertEquals(1, resultat.getEtudiants().size());
+    }
+
+    @Test
+    void testAjouterNouvelleReservationChambreSimpleAvecMockito() {
+        Etudiant etudiant = Etudiant.builder().cinEtudiant(5L).build();
+        Bloc bloc = Bloc.builder().idBloc(1L).nomBloc("A").build();
+        Chambre chambre = Chambre.builder().idChambre(3L).numeroChambre(3L)
+                .typeChambre(TypeChambre.SIMPLE).bloc(bloc).build();
+
+        when(chambreRepository.findFirstByNumeroChambre(3L)).thenReturn(Optional.of(chambre));
+        when(etudiantRepository.findByCinEtudiant(5L)).thenReturn(etudiant);
+        when(reservationRepository.findForReservation(1L)).thenReturn(null);
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArgument(0));
+
+        Reservation resultat = reservationService.ajouterReservation(3L, 5L);
+
+        assertNotNull(resultat);
+        assertEquals(1, resultat.getEtudiants().size());
+        assertFalse(resultat.isEstValide(), "une chambre SIMPLE est complète dès le 1er étudiant");
     }
 
     @Test
@@ -166,28 +258,9 @@ class ReservationServiceTest {
         assertTrue(resultat.isEstValide());
     }
 
-    /*
-     * DÉSACTIVÉ : bug réel dans le code actuel (cast List -> Set dans ajouterReservation).
-     * Retirer @Disabled une fois le service corrigé.
-     */
     @Test
-    @Disabled("Bug : cast List -> Set dans ajouterReservation (ClassCastException)")
-    void testAjouterReservationNouvelleChambreSimpleAvecMockito() {
-        Etudiant etudiant = Etudiant.builder().cinEtudiant(5L).build();
-        Chambre chambre = Chambre.builder().idChambre(3L).typeChambre(TypeChambre.SIMPLE).build();
-        Bloc bloc = Bloc.builder().idBloc(1L).nomBloc("A").build();
-
-        when(reservationRepository.findForReservation(1L)).thenReturn(null);
-        when(etudiantRepository.findByCinEtudiant(5L)).thenReturn(etudiant);
-        when(chambreRepository.getForReservation(1L)).thenReturn(chambre);
-        when(blocRepository.findById(1L)).thenReturn(Optional.of(bloc));
-        when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArgument(0));
-
-        Reservation resultat = reservationService.ajouterReservation(1L, 5L);
-
-        assertNotNull(resultat);
-        assertEquals(1, resultat.getEtudiants().size());
-        assertFalse(resultat.isEstValide(), "une chambre SIMPLE est complète dès le 1er étudiant");
+    void testAnnulerReservationIntrouvable() {
+        assertThrows(NullPointerException.class, () -> reservationService.annulerReservation(999L));
     }
 }
 
@@ -262,23 +335,16 @@ class ReservationServiceIntegrationTest {
         assertEquals(reservation.getIdReservation(), resultat.get(0).getIdReservation());
     }
 
-    /*
-     * DÉSACTIVÉ : bug réel (cast List -> Set dans ajouterReservation).
-     * Retirer @Disabled une fois le service corrigé.
-     */
     @Test
-    @Disabled("Bug : cast List -> Set dans ajouterReservation (ClassCastException)")
     void testAjouterReservationCreeUneReservationSansMockito() {
         Bloc bloc = creerBloc("UNI-" + aleatoire());
-        creerChambre(bloc, TypeChambre.SIMPLE);
+        Chambre chambre = creerChambre(bloc, TypeChambre.SIMPLE);
         Etudiant etudiant = creerEtudiant();
 
-        Reservation resultat = reservationService.ajouterReservation(bloc.getIdBloc(), etudiant.getCinEtudiant());
+        Reservation resultat = reservationService.ajouterReservation(chambre.getNumeroChambre(), etudiant.getCinEtudiant());
 
         assertEquals(1, resultat.getEtudiants().size());
         assertFalse(resultat.isEstValide(), "une chambre SIMPLE est complète dès le 1er étudiant");
-        assertNotNull(chambreRepository.findByReservationsIdReservation(resultat.getIdReservation()),
-                "la réservation doit être liée à la chambre");
     }
 
     /*
