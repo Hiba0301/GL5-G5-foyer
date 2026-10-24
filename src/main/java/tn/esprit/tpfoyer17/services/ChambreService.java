@@ -68,4 +68,9 @@ public class ChambreService implements IChambreService{
         log.info(chambreRepository.getChambresNonReserve().toString());
     }
 
+    @Override
+    public List<Chambre> getChambresParBloc(long idBloc) {
+        return chambreRepository.findByBlocIdBloc(idBloc);
+    }
+
 }

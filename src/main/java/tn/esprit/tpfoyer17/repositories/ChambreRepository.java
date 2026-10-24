@@ -26,4 +26,5 @@ public interface ChambreRepository extends CrudRepository<Chambre,Long> {
     List<Chambre> getChambresNonReserve();
 
     Optional<Chambre> findFirstByNumeroChambre(long numeroChambre);
+    List<Chambre> findByBlocIdBloc(long idBloc);
 }

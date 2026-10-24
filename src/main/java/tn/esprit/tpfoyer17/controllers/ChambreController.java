@@ -61,4 +61,9 @@ public class ChambreController {
     public List<Chambre>  getChambresNonReserveParNomUniversiteEtTypeChambre( @RequestParam("nomUniversite") String nomUniversite,@RequestParam("type") TypeChambre type) {
         return chambreService.getChambresNonReserveParNomUniversiteEtTypeChambre(nomUniversite,type);
     }
+    @GetMapping("chambres-par-bloc")
+    public List<Chambre> chambresParBloc(@RequestParam("idBloc") long idBloc) {
+        return chambreService.getChambresParBloc(idBloc);
+    }
+
 }

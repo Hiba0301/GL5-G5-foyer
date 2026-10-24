@@ -10,8 +10,24 @@
   <section class="card gestion-form">
     <h2>{{ type === 'reservations' ? 'Créer une réservation' : 'Informations' }}</h2>
     @if (type === 'reservations') {
-      <label for="idChambre">Numéro de chambre</label><input id="idChambre" type="number" min="1" [(ngModel)]="form.idChambre">
-      <label for="cinEtudiant">CIN de l'étudiant</label><input id="cinEtudiant" type="number" min="1" [(ngModel)]="form.cinEtudiant">
+      <label for="idBloc">Bloc</label>
+      <select id="idBloc" [(ngModel)]="form.idBloc" (ngModelChange)="onBlocChoisi()">
+        <option [ngValue]="undefined" disabled>Choisir un bloc</option>
+        @for (bloc of blocs(); track bloc.idBloc) {
+          <option [ngValue]="bloc.idBloc">{{ bloc.nomBloc }}</option>
+        }
+      </select>
+
+      <label for="idChambre">Chambre</label>
+      <select id="idChambre" [(ngModel)]="form.idChambre" [disabled]="!chambresDuBloc().length">
+        <option [ngValue]="undefined" disabled>Choisir une chambre</option>
+        @for (chambre of chambresDuBloc(); track chambre.idChambre) {
+          <option [ngValue]="chambre.idChambre">Chambre {{ chambre.numeroChambre }} ({{ chambre.typeChambre }})</option>
+        }
+      </select>
+
+      <label for="cinEtudiant">CIN de l'étudiant</label>
+      <input id="cinEtudiant" type="number" min="1" [(ngModel)]="form.cinEtudiant">
     } @else {
       @for (champ of champs(); track champ) {
         <label [for]="champ">{{ champ }}</label>

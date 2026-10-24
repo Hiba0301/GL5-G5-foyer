@@ -21,6 +21,8 @@ export class Gestion implements OnInit {
   protected readonly succes = signal<string | null>(null);
   protected readonly edition = signal(false);
   protected readonly form: any = {};
+  protected readonly blocs = signal<any[]>([]);
+  protected readonly chambresDuBloc = signal<any[]>([]);
 
   protected readonly titres: Record<TypePage, string> = {
     reservations: 'Réservations', blocs: 'Blocs', chambres: 'Chambres', etudiants: 'Étudiants',
@@ -33,6 +35,7 @@ export class Gestion implements OnInit {
     const segment = this.route.snapshot.routeConfig?.path as TypePage;
     this.type = segment in this.bases ? segment : 'reservations';
     this.charger();
+    if (this.type === 'reservations') this.chargerBlocs();
   }
 
   protected charger(): void {
@@ -40,6 +43,24 @@ export class Gestion implements OnInit {
     this.http.get<any[]>(`${this.api}${this.bases[this.type]}/getAll`).subscribe({
       next: (rows) => { this.elements.set(rows); this.chargement.set(false); },
       error: (err) => { this.erreur.set(messageErreur(err, `Chargement des ${this.titres[this.type].toLowerCase()}`)); this.chargement.set(false); },
+    });
+  }
+
+  private chargerBlocs(): void {
+    this.http.get<any[]>(`${this.api}/api/blocs/getAll`).subscribe({
+      next: (rows) => this.blocs.set(rows),
+      error: (err) => this.erreur.set(messageErreur(err, 'Chargement des blocs')),
+    });
+  }
+
+  protected onBlocChoisi(): void {
+    this.form.idChambre = undefined;
+    this.chambresDuBloc.set([]);
+    const idBloc = Number(this.form.idBloc);
+    if (!idBloc) return;
+    this.http.get<any[]>(`${this.api}/api/chambres/chambres-par-bloc`, { params: { idBloc: String(idBloc) } }).subscribe({
+      next: (rows) => this.chambresDuBloc.set(rows),
+      error: (err) => this.erreur.set(messageErreur(err, 'Chargement des chambres')),
     });
   }
 
@@ -54,6 +75,7 @@ export class Gestion implements OnInit {
     Object.keys(this.form).forEach((key) => delete this.form[key]);
     if (item) Object.assign(this.form, item, { dateNaissance: item.dateNaissance ?? '' });
     else if (this.type === 'chambres') this.form.typeChambre = 'SIMPLE';
+    this.chambresDuBloc.set([]);
     this.edition.set(true);
     this.erreur.set(null);
   }
@@ -62,7 +84,7 @@ export class Gestion implements OnInit {
     const edit = this.type === 'blocs' ? this.form.idBloc != null : this.type === 'chambres' ? this.form.idChambre != null : this.form.idEtudiant != null;
     const dto = this.type === 'blocs' ? { idBloc: this.form.idBloc ?? 0, nomBloc: this.form.nomBloc, capaciteBloc: Number(this.form.capaciteBloc), foyer: this.form.foyer ?? null }
       : this.type === 'chambres' ? { idChambre: this.form.idChambre ?? 0, numeroChambre: Number(this.form.numeroChambre), typeChambre: this.form.typeChambre }
-      : { idEtudiant: this.form.idEtudiant ?? 0, nomEtudiant: this.form.nomEtudiant, prenomEtudiant: this.form.prenomEtudiant, cinEtudiant: Number(this.form.cinEtudiant), dateNaissance: this.form.dateNaissance };
+        : { idEtudiant: this.form.idEtudiant ?? 0, nomEtudiant: this.form.nomEtudiant, prenomEtudiant: this.form.prenomEtudiant, cinEtudiant: Number(this.form.cinEtudiant), dateNaissance: this.form.dateNaissance };
     this.http.request('' + (edit ? 'PUT' : 'POST'), `${this.api}${this.bases[this.type]}/${edit ? 'update' : 'add'}`, { body: dto }).subscribe({
       next: () => { this.edition.set(false); this.succes.set('Enregistrement effectué.'); this.charger(); },
       error: (err) => this.erreur.set(messageErreur(err, "Enregistrement")),
@@ -70,14 +92,14 @@ export class Gestion implements OnInit {
   }
 
   protected ajouterReservation(): void {
-    const numeroChambre = Number(this.form.idChambre);
+    const idChambre = Number(this.form.idChambre);
     const cinEtudiant = Number(this.form.cinEtudiant);
-    if (!numeroChambre || !cinEtudiant) {
-      this.erreur.set('Saisissez le numéro de chambre et le CIN de l’étudiant.');
+    if (!idChambre || !cinEtudiant) {
+      this.erreur.set('Choisissez une chambre et saisissez le CIN de l’étudiant.');
       return;
     }
     this.http.put(`${this.api}/api/reservations/ajouter-reservation`, null, {
-      params: { numeroChambre: String(numeroChambre), cinEtudiant: String(cinEtudiant) },
+      params: { idChambre: String(idChambre), cinEtudiant: String(cinEtudiant) },
     }).subscribe({
       next: () => { this.edition.set(false); this.succes.set('Réservation créée.'); this.charger(); },
       error: (err) => this.erreur.set(messageErreur(err, 'Création de la réservation')),
