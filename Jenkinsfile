@@ -81,10 +81,10 @@ pipeline {
         stage('DEPLOY OUR IMAGE') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')]) {
-                    sh 'echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin'
-                    // Docker Hub coupe parfois la connexion (« EOF ») : on retente
+                    // Docker Hub coupe parfois la connexion (timeout, « EOF ») : on retente login + push
                     retry(3) {
                         sh '''
+                            echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin
                             docker push $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER
                             docker push $DOCKERHUB_USER/gl5-g5-foyer:latest
                         '''
@@ -122,9 +122,10 @@ pipeline {
         stage('PUSH FRONTEND IMAGE') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')]) {
-                    sh 'echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin'
+                    // Docker Hub coupe parfois la connexion (timeout, « EOF ») : on retente login + push
                     retry(3) {
                         sh '''
+                            echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin
                             docker push $DOCKERHUB_USER/gl5-g5-foyer-frontend:$BUILD_NUMBER
                             docker push $DOCKERHUB_USER/gl5-g5-foyer-frontend:latest
                         '''
