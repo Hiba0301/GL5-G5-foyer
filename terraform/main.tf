@@ -48,3 +48,12 @@ resource "aws_security_group_rule" "nodeport" {
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
 }
+
+resource "aws_security_group_rule" "nodeport_frontend" {
+  type              = "ingress"
+  from_port         = 30001
+  to_port           = 30001
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_eks_cluster.this.vpc_config[0].cluster_security_group_id
+}
