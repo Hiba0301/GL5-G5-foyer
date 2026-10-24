@@ -29,16 +29,16 @@ import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -183,6 +183,28 @@ class ReservationServiceTest {
     }
 
     @Test
+    void testAjouterReservationExistanteChambreSimpleDevientCompleteAvecMockito() {
+        Etudiant dejaInscrit = Etudiant.builder().cinEtudiant(1L).build();
+        Etudiant nouveau = Etudiant.builder().cinEtudiant(2L).build();
+        Reservation reservation = Reservation.builder()
+                .idReservation("9")
+                .estValide(true)
+                .etudiants(new HashSet<>(Set.of(dejaInscrit)))
+                .build();
+        Chambre chambre = Chambre.builder().idChambre(9L).typeChambre(TypeChambre.SIMPLE).build();
+
+        when(reservationRepository.findForReservation(1L)).thenReturn(reservation);
+        when(chambreRepository.findByReservationsIdReservation("9")).thenReturn(chambre);
+        when(etudiantRepository.findByCinEtudiant(2L)).thenReturn(nouveau);
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArgument(0));
+
+        Reservation resultat = reservationService.ajouterReservation(1L, 2L);
+
+        assertEquals(2, resultat.getEtudiants().size());
+        assertFalse(resultat.isEstValide(), "une chambre SIMPLE ne peut pas accueillir un second étudiant");
+    }
+
+    @Test
     void testAjouterReservationNouvelleChambreDoubleResteValideAvecMockito() {
         Etudiant etudiant = Etudiant.builder().cinEtudiant(6L).build();
         Chambre chambre = Chambre.builder().idChambre(4L).typeChambre(TypeChambre.DOUBLE).build();
@@ -220,25 +242,6 @@ class ReservationServiceTest {
 
         assertEquals(2, resultat.getEtudiants().size());
         assertTrue(resultat.isEstValide(), "une chambre TRIPLE avec 2 étudiants reste ouverte");
-    }
-
-    @Test
-    void testAjouterReservationExistanteChambreSimpleResteInchangeeAvecMockito() {
-        Reservation reservation = Reservation.builder()
-                .idReservation("11")
-                .estValide(true)
-                .etudiants(new HashSet<>())
-                .build();
-        Chambre chambre = Chambre.builder().idChambre(11L).typeChambre(TypeChambre.SIMPLE).build();
-
-        when(reservationRepository.findForReservation(1L)).thenReturn(reservation);
-        when(chambreRepository.findByReservationsIdReservation("11")).thenReturn(chambre);
-        when(etudiantRepository.findByCinEtudiant(3L)).thenReturn(Etudiant.builder().cinEtudiant(3L).build());
-        when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArgument(0));
-
-        Reservation resultat = reservationService.ajouterReservation(1L, 3L);
-
-        assertTrue(resultat.isEstValide());
     }
 
     @Test

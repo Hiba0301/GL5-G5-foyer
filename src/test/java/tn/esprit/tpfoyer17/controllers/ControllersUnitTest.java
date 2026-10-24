@@ -18,6 +18,7 @@ import tn.esprit.tpfoyer17.entities.Foyer;
 import tn.esprit.tpfoyer17.entities.Reservation;
 import tn.esprit.tpfoyer17.entities.Universite;
 import tn.esprit.tpfoyer17.entities.enumerations.TypeChambre;
+import tn.esprit.tpfoyer17.repositories.EtudiantRepository;
 import tn.esprit.tpfoyer17.services.IBlocService;
 import tn.esprit.tpfoyer17.services.IChambreService;
 import tn.esprit.tpfoyer17.services.IEtudiantService;
@@ -43,6 +44,7 @@ class ControllersUnitTest {
     @Mock private IChambreService chambreService;
     @Mock private IFoyerService foyerService;
     @Mock private IEtudiantService etudiantService;
+    @Mock private EtudiantRepository etudiantRepository;
     @Mock private IReservationService reservationService;
     @Mock private IUniversiteService universiteService;
 
@@ -58,7 +60,7 @@ class ControllersUnitTest {
         blocController = new BlocController(blocService);
         chambreController = new ChambreController(chambreService);
         foyerController = new FoyerController(foyerService);
-        etudiantController = new EtudiantController(etudiantService);
+        etudiantController = new EtudiantController(etudiantService, etudiantRepository);
         reservationController = new ReservationController(reservationService);
         universiteController = new UniversiteController(universiteService);
     }
@@ -67,7 +69,7 @@ class ControllersUnitTest {
     void blocAddConvertsDtoBeforeCallingService() {
         when(blocService.addBloc(any(Bloc.class))).thenAnswer(i -> i.getArgument(0));
 
-        BlocDTO result = blocController.addingBloc(new BlocDTO(1L, "Bloc A", 30L));
+        BlocDTO result = blocController.addingBloc(new BlocDTO(1L, "Bloc A", 30L, null));
 
         assertEquals("Bloc A", result.nomBloc());
         assertEquals(30L, result.capaciteBloc());
@@ -77,10 +79,10 @@ class ControllersUnitTest {
     void blocUpdateConvertsDtoBeforeCallingService() {
         when(blocService.updateBloc(any(Bloc.class))).thenAnswer(i -> i.getArgument(0));
 
-        BlocDTO result = blocController.updatingBloc(new BlocDTO(1L, "Bloc A", 30L));
+        BlocDTO result = blocController.updatingBloc(new BlocDTO(1L, "Bloc A", 30L, new FoyerDTO(9L, "F", 1L)));
 
         assertEquals(1L, result.idBloc());
-        assertEquals(30L, result.capaciteBloc());
+        assertEquals(9L, result.foyer().idFoyer());
     }
 
     @Test

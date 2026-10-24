@@ -36,5 +36,6 @@ public class Chambre  {
     @JsonIgnore
     @ToString.Exclude
     @OneToMany
+    @JoinColumn(name = "chambre_id")
     Set<Reservation> reservations;
 }

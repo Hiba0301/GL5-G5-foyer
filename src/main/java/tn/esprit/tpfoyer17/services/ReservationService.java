@@ -76,8 +76,8 @@ public class ReservationService implements IReservationService {
             existante.getEtudiants().add(etudiant);
             Chambre chambre = chambreRepository.findByReservationsIdReservation(existante.getIdReservation());
             TypeChambre type = chambre.getTypeChambre();
-            if (type == TypeChambre.DOUBLE
-                    || (type == TypeChambre.TRIPLE && existante.getEtudiants().size() == 3)) {
+            // SIMPLE et DOUBLE sont complètes avec ce nouvel étudiant, TRIPLE à partir de 3
+            if (type != TypeChambre.TRIPLE || existante.getEtudiants().size() == 3) {
                 existante.setEstValide(false);
                 log.info("Réservation {} complète (chambre {})", existante.getIdReservation(), type);
             }

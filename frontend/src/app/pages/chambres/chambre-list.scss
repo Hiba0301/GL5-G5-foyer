@@ -1,0 +1,87 @@
+.chambre-filter-card {
+  width: 100%;
+  max-width: none;
+  margin-bottom: 1.5rem;
+}
+
+.chambre-filter-card h2 {
+  margin: 0 0 1rem;
+  font-size: 1.1rem;
+}
+
+.chambre-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.chambre-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.chambre-filter-field label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.chambre-filter-field input,
+.chambre-filter-field select {
+  min-height: 2.5rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font: inherit;
+}
+
+.chambre-filter-field input:focus,
+.chambre-filter-field select:focus {
+  outline: 2px solid #b9d4ea;
+  border-color: var(--primary);
+}
+
+.chambre-filter-text {
+  min-width: 200px;
+  flex: 1 1 220px;
+}
+
+.chambre-filter-id {
+  min-width: 120px;
+}
+
+.chambre-filter-select {
+  min-width: 160px;
+}
+
+.chambre-filter-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-end;
+  margin-left: auto;
+}
+
+@media (max-width: 700px) {
+  .chambre-filter-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .chambre-filter-field,
+  .chambre-filter-text,
+  .chambre-filter-id,
+  .chambre-filter-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .chambre-filter-actions {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .chambre-filter-actions .btn {
+    flex: 1;
+  }
+}

@@ -13,7 +13,11 @@ export const routes: Routes = [
     title: 'Affecter des chambres',
     loadComponent: () => import('./pages/blocs/bloc-affectation').then((m) => m.BlocAffectation),
   },
-  { path: 'chambres', title: 'Chambres', loadComponent: () => import('./pages/gestion/gestion').then((m) => m.Gestion) },
+  {
+    path: 'chambres',
+    title: 'Chambres',
+    loadComponent: () => import('./pages/chambres/chambre-list').then((m) => m.ChambreList),
+  },
   {
     path: 'foyers',
     title: 'Foyers',
@@ -58,6 +62,16 @@ export const routes: Routes = [
     path: 'etudiants/:id/modifier',
     title: 'Modifier un étudiant',
     loadComponent: () => import('./pages/etudiants/etudiant-form').then((m) => m.EtudiantForm),
+  },
+  {
+    path: 'chambres/nouveau',
+    title: 'Ajouter une chambre',
+    loadComponent: () => import('./pages/chambres/chambre-form').then((m) => m.ChambreForm),
+  },
+  {
+    path: 'chambres/:id/modifier',
+    title: 'Modifier une chambre',
+    loadComponent: () => import('./pages/chambres/chambre-form').then((m) => m.ChambreForm),
   },
   { path: '**', redirectTo: 'foyers' },
 ];

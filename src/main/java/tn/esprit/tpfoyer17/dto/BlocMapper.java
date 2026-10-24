@@ -9,7 +9,13 @@ public final class BlocMapper {
     }
 
     public static BlocDTO toDTO(Bloc bloc) {
-        return new BlocDTO(bloc.getIdBloc(), bloc.getNomBloc(), bloc.getCapaciteBloc());
+        FoyerDTO foyer = bloc.getFoyer() == null
+                ? null
+                : new FoyerDTO(
+                        bloc.getFoyer().getIdFoyer(),
+                        bloc.getFoyer().getNomFoyer(),
+                        bloc.getFoyer().getCapaciteFoyer());
+        return new BlocDTO(bloc.getIdBloc(), bloc.getNomBloc(), bloc.getCapaciteBloc(), foyer);
     }
 
     public static Bloc toEntity(BlocDTO dto) {
@@ -17,6 +23,7 @@ public final class BlocMapper {
                 .idBloc(dto.idBloc())
                 .nomBloc(dto.nomBloc())
                 .capaciteBloc(dto.capaciteBloc())
+                .foyer(dto.foyer() == null ? null : dto.foyer().toEntity())
                 .build();
     }
 }
