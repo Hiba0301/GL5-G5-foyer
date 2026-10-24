@@ -44,7 +44,7 @@ public class FoyerController {
         return foyerService.updateFoyer(foyerDTO.toEntity());
     }
     @PostMapping("ajouter-affecter")
-    Foyer ajouterFoyerEtAffecterAUniversite (@RequestBody FoyerDTO foyerDTO, @RequestParam("idUniversite") long idUniversite){
+    public Foyer ajouterFoyerEtAffecterAUniversite (@RequestBody FoyerDTO foyerDTO, @RequestParam("idUniversite") long idUniversite){
         return foyerService.ajouterFoyerEtAffecterAUniversite(foyerDTO.toEntity(),idUniversite);
     }
 

@@ -68,57 +68,45 @@ public class ReservationService implements IReservationService {
     @Override
     public Reservation ajouterReservation(long idBloc, long cinEtudiant) {
         log.info("Ajout d'un étudiant (cin {}) à une réservation du bloc {}", cinEtudiant, idBloc);
-
+        Etudiant etudiant = etudiantRepository.findByCinEtudiant(cinEtudiant);
         Reservation existante = reservationRepository.findForReservation(idBloc);
 
         if (existante != null) {
             log.debug("Réservation existante trouvée pour le bloc {} : {}", idBloc, existante.getIdReservation());
-            existante.getEtudiants().add(etudiantRepository.findByCinEtudiant(cinEtudiant));
+            existante.getEtudiants().add(etudiant);
             Chambre chambre = chambreRepository.findByReservationsIdReservation(existante.getIdReservation());
-            switch (chambre.getTypeChambre()) {
-                case TRIPLE:
-                    if (existante.getEtudiants().size() == 3) {
-                        existante.setEstValide(false);
-                        log.info("Réservation {} complète (chambre TRIPLE, 3 étudiants)", existante.getIdReservation());
-                    }
-                    break;
-                case DOUBLE:
-                    existante.setEstValide(false);
-                    log.info("Réservation {} complète (chambre DOUBLE)", existante.getIdReservation());
-                    break;
+            TypeChambre type = chambre.getTypeChambre();
+            if (type == TypeChambre.DOUBLE
+                    || (type == TypeChambre.TRIPLE && existante.getEtudiants().size() == 3)) {
+                existante.setEstValide(false);
+                log.info("Réservation {} complète (chambre {})", existante.getIdReservation(), type);
             }
             Reservation saved = reservationRepository.save(existante);
             log.info("Étudiant (cin {}) ajouté à la réservation {}", cinEtudiant, saved.getIdReservation());
             return saved;
-        } else {
-            log.debug("Aucune réservation existante pour le bloc {}, création d'une nouvelle réservation", idBloc);
-            List<Etudiant> etudiants = new ArrayList<Etudiant>();
-            etudiants.add(etudiantRepository.findByCinEtudiant(cinEtudiant));
-            Reservation reservation = Reservation.builder()
-                    .anneeUniversitaire(LocalDate.now(ZONE))
-                    .etudiants((Set<Etudiant>) etudiants)
-                    .build();
-            Chambre chambre = chambreRepository.getForReservation(idBloc);
-            Bloc bloc = blocRepository.findById(idBloc).orElseThrow(() -> {
-                log.error("Bloc introuvable avec l'id {}", idBloc);
-                return new NoSuchElementException("Bloc introuvable avec l'id " + idBloc);
-            });
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(new Date());
-            String idReservation = chambre.getIdChambre() + bloc.getNomBloc() + calendar.get(Calendar.YEAR);
-            reservation.setIdReservation(idReservation);
-            if (chambre.getTypeChambre().equals(TypeChambre.SIMPLE)) {
-                reservation.setEstValide(false);
-            } else {
-                reservation.setEstValide(true);
-            }
-            log.debug("Nouvelle réservation {} (chambre {}, valide : {})",
-                    idReservation, chambre.getTypeChambre(), reservation.isEstValide());
-
-            Reservation saved = reservationRepository.save(reservation);
-            log.info("Nouvelle réservation {} créée pour l'étudiant (cin {})", saved.getIdReservation(), cinEtudiant);
-            return saved;
         }
+
+        log.debug("Aucune réservation existante pour le bloc {}, création d'une nouvelle réservation", idBloc);
+        Set<Etudiant> etudiants = new HashSet<>();
+        etudiants.add(etudiant);
+        Chambre chambre = chambreRepository.getForReservation(idBloc);
+        Bloc bloc = blocRepository.findById(idBloc).orElseThrow(() -> {
+            log.error("Bloc introuvable avec l'id {}", idBloc);
+            return new NoSuchElementException("Bloc introuvable avec l'id " + idBloc);
+        });
+        String idReservation = chambre.getIdChambre() + bloc.getNomBloc() + Year.now(ZONE).getValue();
+        Reservation reservation = Reservation.builder()
+                .idReservation(idReservation)
+                .anneeUniversitaire(LocalDate.now(ZONE))
+                .etudiants(etudiants)
+                .estValide(chambre.getTypeChambre() != TypeChambre.SIMPLE)
+                .build();
+        log.debug("Nouvelle réservation {} (chambre {}, valide : {})",
+                idReservation, chambre.getTypeChambre(), reservation.isEstValide());
+
+        Reservation saved = reservationRepository.save(reservation);
+        log.info("Nouvelle réservation {} créée pour l'étudiant (cin {})", saved.getIdReservation(), cinEtudiant);
+        return saved;
     }
 
     @Override
@@ -130,6 +118,7 @@ public class ReservationService implements IReservationService {
         Reservation reservation = reservationRepository.findByEtudiantsCinEtudiantAndAnneeUniversitaire(cinEtudiant, annee);
         if (reservation == null) {
             log.warn("Aucune réservation trouvée pour l'étudiant (cin {}) en {}", cinEtudiant, annee);
+            throw new NoSuchElementException("Aucune réservation pour l'étudiant (cin " + cinEtudiant + ") en " + annee);
         }
 
         Etudiant etudiant = etudiantRepository.findByCinEtudiant(cinEtudiant);

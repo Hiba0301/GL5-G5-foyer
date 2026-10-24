@@ -29,18 +29,17 @@ class DtoMappingTest {
     }
 
     @Test
-    void blocDtoMapsFieldsAndFoyer() {
-        Bloc bloc = new BlocDTO(2L, "Bloc B", 50L, new FoyerDTO(1L, "Foyer A", 200L)).toEntity();
+    void blocDtoMapsFields() {
+        Bloc bloc = BlocMapper.toEntity(new BlocDTO(2L, "Bloc B", 50L));
 
         assertEquals(2L, bloc.getIdBloc());
         assertEquals("Bloc B", bloc.getNomBloc());
         assertEquals(50L, bloc.getCapaciteBloc());
-        assertEquals(1L, bloc.getFoyer().getIdFoyer());
     }
 
     @Test
     void blocDtoWithoutFoyerLeavesFoyerNull() {
-        Bloc bloc = new BlocDTO(2L, "Bloc B", 50L, null).toEntity();
+        Bloc bloc = BlocMapper.toEntity(new BlocDTO(2L, "Bloc B", 50L));
 
         assertNull(bloc.getFoyer());
     }

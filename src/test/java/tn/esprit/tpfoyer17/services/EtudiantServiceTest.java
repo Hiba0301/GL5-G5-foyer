@@ -84,6 +84,15 @@ class EtudiantServiceTest {
     }
 
     @Test
+    void testDeleteEtudiantInexistantAvecMockito() {
+        when(etudiantRepository.existsById(2L)).thenReturn(false);
+
+        etudiantService.deleteEtudiant(2L);
+
+        verify(etudiantRepository).deleteById(2L);
+    }
+
+    @Test
     void testUpdateEtudiantAvecMockito() {
         Etudiant etudiant = creerEtudiant("Ben Ali Modifie", "Salima");
         when(etudiantRepository.save(etudiant)).thenReturn(etudiant);
