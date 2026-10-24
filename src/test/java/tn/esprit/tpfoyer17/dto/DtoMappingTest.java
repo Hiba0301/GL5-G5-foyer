@@ -47,7 +47,7 @@ class DtoMappingTest {
 
     @Test
     void chambreDtoMapsFields() {
-        Chambre chambre = new ChambreDTO(3L, 101L, TypeChambre.DOUBLE).toEntity();
+        Chambre chambre = new ChambreDTO(3L, 101L, TypeChambre.DOUBLE, 1L).toEntity();
 
         assertEquals(3L, chambre.getIdChambre());
         assertEquals(101L, chambre.getNumeroChambre());

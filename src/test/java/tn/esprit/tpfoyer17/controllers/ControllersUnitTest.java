@@ -89,7 +89,7 @@ class ControllersUnitTest {
     void chambreAddConvertsDtoBeforeCallingService() {
         when(chambreService.addChambre(any(Chambre.class))).thenAnswer(i -> i.getArgument(0));
 
-        Chambre result = chambreController.addingChambre(new ChambreDTO(2L, 101L, TypeChambre.SIMPLE));
+        Chambre result = chambreController.addingChambre(new ChambreDTO(2L, 101L, TypeChambre.SIMPLE, 1L));
 
         assertEquals(101L, result.getNumeroChambre());
         assertEquals(TypeChambre.SIMPLE, result.getTypeChambre());
@@ -99,7 +99,7 @@ class ControllersUnitTest {
     void chambreUpdateConvertsDtoBeforeCallingService() {
         when(chambreService.updateChambre(any(Chambre.class))).thenAnswer(i -> i.getArgument(0));
 
-        Chambre result = chambreController.updatingChambre(new ChambreDTO(2L, 102L, TypeChambre.DOUBLE));
+        Chambre result = chambreController.updatingChambre(new ChambreDTO(2L, 102L, TypeChambre.DOUBLE, 1L));
 
         assertEquals(2L, result.getIdChambre());
         assertEquals(102L, result.getNumeroChambre());
