@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foyer-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: foyer-frontend
+  template:
+    metadata:
+      labels:
+        app: foyer-frontend
+    spec:
+      containers:
+        - name: foyer-frontend
+          image: hiba0301/gl5-g5-foyer-frontend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env:
+            # nginx relaie /tpFoyer17/ vers ce Service (défini dans service.yaml)
+            - name: BACKEND_HOST
+              value: foyer-app-service
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: foyer-frontend
+spec:
+  type: NodePort
+  selector:
+    app: foyer-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30001
