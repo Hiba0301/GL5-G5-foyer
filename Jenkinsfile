@@ -81,12 +81,15 @@ pipeline {
         stage('DEPLOY OUR IMAGE') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')]) {
-                    sh '''
-                        echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin
-                        docker push $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER
-                        docker push $DOCKERHUB_USER/gl5-g5-foyer:latest
-                        docker logout
-                    '''
+                    sh 'echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin'
+                    // Docker Hub coupe parfois la connexion (« EOF ») : on retente
+                    retry(3) {
+                        sh '''
+                            docker push $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER
+                            docker push $DOCKERHUB_USER/gl5-g5-foyer:latest
+                        '''
+                    }
+                    sh 'docker logout'
                 }
             }
         }
@@ -101,6 +104,44 @@ pipeline {
                           -e SPRING_DATASOURCE_USERNAME=root \
                           -e SPRING_DATASOURCE_PASSWORD= \
                           $DOCKERHUB_USER/gl5-g5-foyer:$BUILD_NUMBER
+                    '''
+                }
+            }
+        }
+
+        stage('BUILD FRONTEND IMAGE') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')]) {
+                    // Le build Angular se fait dans le Dockerfile (Jenkins n'a pas Node.js).
+                    // --pull : sinon le builder réutilise les images node/nginx arm64 du Mac déjà en cache
+                    sh 'docker build --pull --platform linux/amd64 -t $DOCKERHUB_USER/gl5-g5-foyer-frontend:$BUILD_NUMBER -t $DOCKERHUB_USER/gl5-g5-foyer-frontend:latest ./frontend'
+                }
+            }
+        }
+
+        stage('PUSH FRONTEND IMAGE') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')]) {
+                    sh 'echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin'
+                    retry(3) {
+                        sh '''
+                            docker push $DOCKERHUB_USER/gl5-g5-foyer-frontend:$BUILD_NUMBER
+                            docker push $DOCKERHUB_USER/gl5-g5-foyer-frontend:latest
+                        '''
+                    }
+                    sh 'docker logout'
+                }
+            }
+        }
+
+        stage('RUN FRONTEND CONTAINER') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_TOKEN')]) {
+                    sh '''
+                        docker rm -f foyer-frontend || true
+                        docker run -d --name foyer-frontend --network devops -p 4200:80 \
+                          -e BACKEND_HOST=foyer-app \
+                          $DOCKERHUB_USER/gl5-g5-foyer-frontend:$BUILD_NUMBER
                     '''
                 }
             }
@@ -149,6 +190,9 @@ pipeline {
                         kubectl apply -f service.yaml
                         kubectl rollout restart deployment/foyer-app
                         kubectl rollout status deployment/foyer-app --timeout=300s
+                        kubectl apply -f frontend-k8s.yaml
+                        kubectl rollout restart deployment/foyer-frontend
+                        kubectl rollout status deployment/foyer-frontend --timeout=180s
                         kubectl get pods,svc -o wide
                     '''
                 }
