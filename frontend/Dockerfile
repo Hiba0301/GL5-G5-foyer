@@ -9,7 +9,12 @@ RUN npm run build
 
 # Étape 2 : servir les fichiers statiques avec nginx
 FROM nginx:alpine
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Hôte du backend : "foyer-app" en local (réseau Docker devops),
+# surchargé par le Deployment Kubernetes (foyer-app-service)
+ENV BACKEND_HOST=foyer-app
+# envsubst ne remplace que BACKEND_HOST dans les templates
+ENV NGINX_ENVSUBST_FILTER=^BACKEND_HOST$
+COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist/frontend/browser /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
