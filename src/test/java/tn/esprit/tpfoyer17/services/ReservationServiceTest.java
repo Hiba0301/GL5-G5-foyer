@@ -161,12 +161,7 @@ class ReservationServiceTest {
         assertTrue(resultat.isEstValide());
     }
 
-    /*
-     * DÉSACTIVÉ : bug réel dans le code actuel (cast List -> Set dans ajouterReservation).
-     * Retirer @Disabled une fois le service corrigé.
-     */
     @Test
-    @Disabled("Bug : cast List -> Set dans ajouterReservation (ClassCastException)")
     void testAjouterReservationNouvelleChambreSimpleAvecMockito() {
         Etudiant etudiant = Etudiant.builder().cinEtudiant(5L).build();
         Chambre chambre = Chambre.builder().idChambre(3L).typeChambre(TypeChambre.SIMPLE).build();
@@ -183,6 +178,28 @@ class ReservationServiceTest {
         assertNotNull(resultat);
         assertEquals(1, resultat.getEtudiants().size());
         assertFalse(resultat.isEstValide(), "une chambre SIMPLE est complète dès le 1er étudiant");
+    }
+
+    @Test
+    void testAjouterReservationExistanteChambreSimpleDevientCompleteAvecMockito() {
+        Etudiant dejaInscrit = Etudiant.builder().cinEtudiant(1L).build();
+        Etudiant nouveau = Etudiant.builder().cinEtudiant(2L).build();
+        Reservation reservation = Reservation.builder()
+                .idReservation("9")
+                .estValide(true)
+                .etudiants(new HashSet<>(Set.of(dejaInscrit)))
+                .build();
+        Chambre chambre = Chambre.builder().idChambre(9L).typeChambre(TypeChambre.SIMPLE).build();
+
+        when(reservationRepository.findForReservation(1L)).thenReturn(reservation);
+        when(chambreRepository.findByReservationsIdReservation("9")).thenReturn(chambre);
+        when(etudiantRepository.findByCinEtudiant(2L)).thenReturn(nouveau);
+        when(reservationRepository.save(any(Reservation.class))).thenAnswer(i -> i.getArgument(0));
+
+        Reservation resultat = reservationService.ajouterReservation(1L, 2L);
+
+        assertEquals(2, resultat.getEtudiants().size());
+        assertFalse(resultat.isEstValide(), "une chambre SIMPLE ne peut pas accueillir un second étudiant");
     }
 }
 
@@ -258,11 +275,11 @@ class ReservationServiceIntegrationTest {
     }
 
     /*
-     * DÉSACTIVÉ : bug réel (cast List -> Set dans ajouterReservation).
-     * Retirer @Disabled une fois le service corrigé.
+     * Désactivé : the integration fixture does not make getForReservation(idBloc)
+     * resolve the chambre, so the service receives null before creating the ID.
      */
     @Test
-    @Disabled("Bug : cast List -> Set dans ajouterReservation (ClassCastException)")
+    @Disabled("Integration fixture does not resolve the chambre for the bloc")
     void testAjouterReservationCreeUneReservationSansMockito() {
         Bloc bloc = creerBloc("UNI-" + aleatoire());
         creerChambre(bloc, TypeChambre.SIMPLE);

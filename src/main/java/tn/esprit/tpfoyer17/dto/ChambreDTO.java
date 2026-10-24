@@ -1,12 +1,20 @@
 package tn.esprit.tpfoyer17.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import tn.esprit.tpfoyer17.entities.Chambre;
 import tn.esprit.tpfoyer17.entities.enumerations.TypeChambre;
 
-/**
- * Objet de transfert pour les requêtes d'ajout / modification d'une chambre.
- */
-public record ChambreDTO(long idChambre, long numeroChambre, TypeChambre typeChambre) {
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class ChambreDTO {
+    private long idChambre;
+    private long numeroChambre;
+    private TypeChambre typeChambre;
 
     public Chambre toEntity() {
         return Chambre.builder()

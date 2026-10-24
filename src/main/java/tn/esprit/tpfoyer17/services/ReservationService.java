@@ -86,17 +86,21 @@ public class ReservationService implements IReservationService {
                     existante.setEstValide(false);
                     log.info("Réservation {} complète (chambre DOUBLE)", existante.getIdReservation());
                     break;
+                case SIMPLE:
+                    existante.setEstValide(false);
+                    log.info("Réservation {} complète (chambre SIMPLE)", existante.getIdReservation());
+                    break;
             }
             Reservation saved = reservationRepository.save(existante);
             log.info("Étudiant (cin {}) ajouté à la réservation {}", cinEtudiant, saved.getIdReservation());
             return saved;
         } else {
             log.debug("Aucune réservation existante pour le bloc {}, création d'une nouvelle réservation", idBloc);
-            List<Etudiant> etudiants = new ArrayList<Etudiant>();
+            Set<Etudiant> etudiants = new HashSet<>();
             etudiants.add(etudiantRepository.findByCinEtudiant(cinEtudiant));
             Reservation reservation = Reservation.builder()
                     .anneeUniversitaire(LocalDate.now(ZONE))
-                    .etudiants((Set<Etudiant>) etudiants)
+                    .etudiants(etudiants)
                     .build();
             Chambre chambre = chambreRepository.getForReservation(idBloc);
             Bloc bloc = blocRepository.findById(idBloc).orElseThrow(() -> {
